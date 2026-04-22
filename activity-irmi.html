@@ -40,640 +40,209 @@ body {
 
 /* ===== INTRO ===== */
 #s-intro {
-  align-items: center;
-  justify-content: center;
+  align-items: center; justify-content: center;
   padding: 40px 28px;
   background: radial-gradient(ellipse at 50% 30%, #2d0a4e 0%, #0d0d0d 65%);
-  text-align: center;
-  gap: 4px;
-  overflow: hidden;
-  position: relative;
+  text-align: center; gap: 4px; overflow: hidden; position: relative;
 }
-
-.stars {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.star {
-  position: absolute;
-  width: 3px; height: 3px;
-  background: white;
-  border-radius: 50%;
-  opacity: 0;
-  animation: twinkle var(--d, 3s) var(--delay, 0s) infinite;
-}
-
-@keyframes twinkle {
-  0%, 100% { opacity: 0; }
-  50% { opacity: var(--op, 0.6); }
-}
-
-.cat-hero {
-  font-size: 90px;
-  line-height: 1;
-  margin-bottom: 4px;
-  filter: drop-shadow(0 0 30px rgba(192,132,252,0.5));
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0) rotate(-3deg); }
-  50% { transform: translateY(-12px) rotate(3deg); }
-}
-
-.intro-greeting {
-  font-family: 'Paytone One', cursive;
-  font-size: 14px;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 4px;
-}
-
-.intro-title {
-  font-family: 'Paytone One', cursive;
-  font-size: 42px;
-  line-height: 1.1;
-  background: linear-gradient(135deg, #fff 0%, #c084fc 50%, #ffd700 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin-bottom: 6px;
-}
-
-.intro-sub {
-  font-size: 15px;
-  color: var(--muted);
-  margin-bottom: 28px;
-  line-height: 1.5;
-}
-
+.stars { position: absolute; inset: 0; pointer-events: none; }
+.star { position: absolute; width: 3px; height: 3px; background: white; border-radius: 50%; opacity: 0; animation: twinkle var(--d,3s) var(--delay,0s) infinite; }
+@keyframes twinkle { 0%,100%{opacity:0} 50%{opacity:var(--op,0.6)} }
+.cat-hero { font-size: 90px; line-height: 1; margin-bottom: 4px; filter: drop-shadow(0 0 30px rgba(192,132,252,0.5)); animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-12px) rotate(3deg)} }
+.intro-greeting { font-family: 'Paytone One', cursive; font-size: 13px; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+.intro-title { font-family: 'Paytone One', cursive; font-size: 38px; line-height: 1.1; background: linear-gradient(135deg,#fff 0%,#c084fc 50%,#ffd700 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; }
+.intro-sub { font-size: 15px; color: var(--muted); margin-bottom: 28px; line-height: 1.5; }
 .intro-sub span { color: var(--accent); font-weight: 700; }
-
-.btn-big {
-  background: linear-gradient(135deg, #c084fc, #7c3aed);
-  color: white;
-  border: none;
-  border-radius: 18px;
-  padding: 18px 40px;
-  font-family: 'Paytone One', cursive;
-  font-size: 22px;
-  cursor: pointer;
-  box-shadow: 0 8px 30px rgba(192,132,252,0.4);
-  transition: transform 0.15s, box-shadow 0.15s;
-  width: 100%;
-  max-width: 320px;
-}
-
-.btn-big:active { transform: scale(0.96); box-shadow: 0 4px 15px rgba(192,132,252,0.3); }
-
-.version-note {
-  margin-top: 14px;
-  font-size: 12px;
-  color: #333;
-}
+.btn-big { background: linear-gradient(135deg,#c084fc,#7c3aed); color: white; border: none; border-radius: 18px; padding: 18px 40px; font-family: 'Paytone One', cursive; font-size: 22px; cursor: pointer; box-shadow: 0 8px 30px rgba(192,132,252,0.4); transition: transform 0.15s; width: 100%; max-width: 320px; }
+.btn-big:active { transform: scale(0.96); }
+.version-note { margin-top: 14px; font-size: 12px; color: #333; }
 
 /* ===== SETUP ===== */
-#s-setup {
-  padding: 0;
-  background: var(--bg);
-}
-
-.setup-header {
-  background: linear-gradient(135deg, #1a0a2e, #0d0d0d);
-  padding: 24px 20px 20px;
-  border-bottom: 1px solid #222;
-}
-
-.setup-title {
-  font-family: 'Paytone One', cursive;
-  font-size: 26px;
-  margin-bottom: 4px;
-}
-
+#s-setup { padding: 0; background: var(--bg); }
+.setup-header { background: linear-gradient(135deg,#1a0a2e,#0d0d0d); padding: 24px 20px 20px; border-bottom: 1px solid #222; }
+.setup-title { font-family: 'Paytone One', cursive; font-size: 26px; margin-bottom: 4px; }
 .setup-sub { font-size: 13px; color: var(--muted); }
-
 .setup-body { padding: 20px; flex: 1; overflow-y: auto; }
-
-.section-label {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 10px;
-  margin-top: 20px;
-}
-
+.section-label { font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; margin-top: 20px; }
 .section-label:first-child { margin-top: 0; }
-
-/* POČET TÝMŮ */
-.team-count-row {
-  display: flex;
-  gap: 10px;
-}
-
-.team-count-btn {
-  flex: 1;
-  padding: 14px 8px;
-  border-radius: 14px;
-  border: 2px solid #333;
-  background: var(--card);
-  color: var(--muted);
-  font-family: 'Paytone One', cursive;
-  font-size: 20px;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-align: center;
-}
-
-.team-count-btn.selected {
-  border-color: var(--accent);
-  background: rgba(192,132,252,0.15);
-  color: var(--accent);
-}
-
-/* TÝMY */
+.team-count-row { display: flex; gap: 10px; }
+.team-count-btn { flex: 1; padding: 14px 8px; border-radius: 14px; border: 2px solid #333; background: var(--card); color: var(--muted); font-family: 'Paytone One', cursive; font-size: 18px; cursor: pointer; transition: all 0.2s; text-align: center; }
+.team-count-btn.selected { border-color: var(--accent); background: rgba(192,132,252,0.15); color: var(--accent); }
 .team-inputs { display: flex; flex-direction: column; gap: 10px; }
-
-.team-input-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--card);
-  border: 2px solid #333;
-  border-radius: 14px;
-  padding: 10px 14px;
-  transition: border-color 0.2s;
-}
-
+.team-input-row { display: flex; align-items: center; gap: 10px; background: var(--card); border: 2px solid #333; border-radius: 14px; padding: 10px 14px; transition: border-color 0.2s; }
 .team-input-row:focus-within { border-color: var(--accent); }
-
 .team-emoji { font-size: 24px; }
-
-.team-input {
-  flex: 1;
-  background: none;
-  border: none;
-  color: var(--white);
-  font-family: 'Nunito', sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  outline: none;
-}
-
+.team-input { flex: 1; background: none; border: none; color: var(--white); font-family: 'Nunito',sans-serif; font-size: 16px; font-weight: 700; outline: none; }
 .team-input::placeholder { color: #444; }
-
-/* DÉLKA HRY */
 .length-row { display: flex; gap: 10px; }
+.length-btn { flex: 1; padding: 12px 8px; border-radius: 14px; border: 2px solid #333; background: var(--card); color: var(--muted); font-family: 'Nunito',sans-serif; font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.2s; text-align: center; }
+.length-btn.selected { border-color: var(--popis); background: rgba(78,205,196,0.15); color: var(--popis); }
+.setup-footer { padding: 16px 20px calc(16px + env(safe-area-inset-bottom)); border-top: 1px solid #222; }
 
-.length-btn {
-  flex: 1;
-  padding: 12px 8px;
-  border-radius: 14px;
-  border: 2px solid #333;
-  background: var(--card);
-  color: var(--muted);
-  font-family: 'Nunito', sans-serif;
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-align: center;
-}
-
-.length-btn.selected {
-  border-color: var(--popis);
-  background: rgba(78,205,196,0.15);
-  color: var(--popis);
-}
-
-.setup-footer {
-  padding: 16px 20px calc(16px + env(safe-area-inset-bottom));
-  border-top: 1px solid #222;
-}
-
-/* ===== HRA ===== */
-#s-game {
-  background: var(--bg);
+/* ===== BOARD ===== */
+#s-board {
+  background: radial-gradient(ellipse at 50% 0%, #1a0a2e 0%, #0d0d0d 60%);
   overflow: hidden;
 }
+.board-header { padding: 12px 16px 8px; border-bottom: 1px solid #1a1a1a; flex-shrink: 0; }
+.board-turn-info { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.board-turn-label { font-family: 'Paytone One', cursive; font-size: 15px; }
+.board-round-badge { font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: 1px; }
+.scores-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+.scores-row::-webkit-scrollbar { display: none; }
+.score-chip { flex-shrink: 0; border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 800; border: 2px solid #333; background: var(--card); color: var(--muted); display: flex; align-items: center; gap: 5px; transition: all 0.3s; }
+.score-chip.current { border-color: var(--accent); background: rgba(192,132,252,0.2); color: var(--white); }
+.score-pts { background: #333; border-radius: 10px; padding: 1px 6px; font-size: 11px; color: var(--white); }
+.score-chip.current .score-pts { background: var(--accent); color: #000; }
 
-.game-top {
-  padding: 14px 16px 10px;
-  border-bottom: 1px solid #1a1a1a;
-  flex-shrink: 0;
+.board-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 16px; overflow: hidden; }
+
+.board-instruction {
+  font-size: 13px; font-weight: 800; color: var(--accent);
+  text-align: center; margin-bottom: 10px;
+  animation: pulse-text 1.5s ease-in-out infinite;
+  min-height: 20px;
 }
+@keyframes pulse-text { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-.teams-track {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding-bottom: 2px;
-}
-.teams-track::-webkit-scrollbar { display: none; }
+.board-container { width: 100%; max-width: 400px; }
+.board-svg { width: 100%; height: auto; overflow: visible; display: block; }
 
-.team-chip {
-  flex-shrink: 0;
-  border-radius: 20px;
-  padding: 6px 12px;
-  font-size: 13px;
-  font-weight: 800;
-  border: 2px solid #333;
-  background: var(--card);
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.3s;
-  min-width: 0;
-}
-
-.team-chip.current {
-  border-color: var(--accent);
-  background: rgba(192,132,252,0.2);
-  color: var(--white);
-}
-
-.team-score {
-  background: #333;
-  border-radius: 10px;
-  padding: 1px 7px;
-  font-size: 12px;
-  color: var(--white);
-  margin-left: 2px;
-}
-
-.team-chip.current .team-score {
-  background: var(--accent);
-  color: #000;
-}
-
-/* KOLO INFO */
-.round-info {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 10px;
-}
-
-.current-team-label {
-  font-family: 'Paytone One', cursive;
-  font-size: 18px;
-}
-
-.round-badge {
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--muted);
-  letter-spacing: 1px;
-}
-
-/* HERNÍ CENTRUM */
-.game-center {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  gap: 16px;
-  overflow: hidden;
-}
-
-/* ÚKOL KARTA */
-.task-card {
-  width: 100%;
-  max-width: 380px;
-  border-radius: 24px;
-  padding: 28px 24px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.task-card.kresli {
-  background: linear-gradient(135deg, #ff6b6b, #c0392b);
-  box-shadow: 0 12px 40px rgba(255,107,107,0.35);
-}
-
-.task-card.popis {
-  background: linear-gradient(135deg, #4ecdc4, #1a8b84);
-  box-shadow: 0 12px 40px rgba(78,205,196,0.35);
-}
-
-.task-card.pantomima {
-  background: linear-gradient(135deg, #ffe66d, #c5a000);
-  box-shadow: 0 12px 40px rgba(255,230,109,0.35);
-}
-
-.task-type-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(0,0,0,0.25);
-  border-radius: 20px;
-  padding: 5px 14px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin-bottom: 16px;
-  color: rgba(255,255,255,0.9);
-}
-
-.task-type-icon { font-size: 16px; }
-
-.task-word {
-  font-family: 'Paytone One', cursive;
-  font-size: 46px;
-  line-height: 1.1;
-  color: white;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  margin-bottom: 12px;
-  word-break: break-word;
-}
-
-.task-rule {
-  font-size: 13px;
-  font-weight: 700;
-  color: rgba(255,255,255,0.75);
-  line-height: 1.4;
-}
-
-/* TIMER */
-.timer-ring-wrap {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  flex-shrink: 0;
-}
-
-.timer-ring-wrap svg {
-  position: absolute;
-  inset: 0;
-  transform: rotate(-90deg);
-}
-
+/* ===== TASK SCREEN ===== */
+#s-game { background: var(--bg); overflow: hidden; }
+.game-top { padding: 12px 16px 10px; border-bottom: 1px solid #1a1a1a; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; }
+.game-team-label { font-family: 'Paytone One', cursive; font-size: 18px; }
+.game-round-badge { font-size: 12px; font-weight: 800; color: var(--muted); letter-spacing: 1px; }
+.game-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; gap: 14px; overflow: hidden; }
+.task-card { width: 100%; max-width: 380px; border-radius: 24px; padding: 26px 22px; text-align: center; position: relative; overflow: hidden; }
+.task-card.kresli { background: linear-gradient(135deg,#ff6b6b,#c0392b); box-shadow: 0 12px 40px rgba(255,107,107,0.35); }
+.task-card.popis { background: linear-gradient(135deg,#4ecdc4,#1a8b84); box-shadow: 0 12px 40px rgba(78,205,196,0.35); }
+.task-card.pantomima { background: linear-gradient(135deg,#ffe66d,#c5a000); box-shadow: 0 12px 40px rgba(255,230,109,0.35); }
+.task-type-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.25); border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px; color: rgba(255,255,255,0.9); }
+.task-word { font-family: 'Paytone One', cursive; font-size: 40px; line-height: 1.1; color: white; text-shadow: 0 2px 8px rgba(0,0,0,0.3); margin-bottom: 10px; word-break: break-word; }
+.task-rule { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.75); line-height: 1.4; }
+.timer-ring-wrap { position: relative; width: 100px; height: 100px; flex-shrink: 0; }
+.timer-ring-wrap svg { position: absolute; inset: 0; transform: rotate(-90deg); }
 .timer-ring-bg { stroke: #222; }
-.timer-ring-fill {
-  stroke: var(--accent);
-  stroke-dasharray: 326;
-  stroke-dashoffset: 0;
-  transition: stroke-dashoffset 1s linear, stroke 0.5s;
-}
-
-.timer-number {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Paytone One', cursive;
-  font-size: 38px;
-  color: var(--white);
-}
-
-/* AKČNÍ TLAČÍTKA */
-.action-row {
-  display: flex;
-  gap: 10px;
-  width: 100%;
-  max-width: 380px;
-}
-
-.btn-wrong {
-  flex: 1;
-  padding: 16px;
-  border-radius: 16px;
-  border: none;
-  background: #2a1a1a;
-  color: var(--kresli);
-  font-family: 'Paytone One', cursive;
-  font-size: 18px;
-  cursor: pointer;
-  transition: all 0.15s;
-  border: 2px solid #3a2a2a;
-}
-
+.timer-ring-fill { stroke: var(--accent); stroke-dasharray: 283; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear, stroke 0.5s; }
+.timer-number { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Paytone One', cursive; font-size: 32px; color: var(--white); }
+.action-row { display: flex; gap: 10px; width: 100%; max-width: 380px; }
+.btn-wrong { flex: 1; padding: 14px; border-radius: 16px; border: 2px solid #3a2a2a; background: #2a1a1a; color: var(--kresli); font-family: 'Paytone One', cursive; font-size: 15px; cursor: pointer; transition: all 0.15s; }
 .btn-wrong:active { transform: scale(0.95); }
-
-.btn-correct {
-  flex: 2;
-  padding: 16px;
-  border-radius: 16px;
-  border: none;
-  background: linear-gradient(135deg, #2dce89, #1a9965);
-  color: white;
-  font-family: 'Paytone One', cursive;
-  font-size: 22px;
-  cursor: pointer;
-  transition: all 0.15s;
-  box-shadow: 0 6px 20px rgba(45,206,137,0.3);
-}
-
+.btn-correct { flex: 2; padding: 14px; border-radius: 16px; border: none; background: linear-gradient(135deg,#2dce89,#1a9965); color: white; font-family: 'Paytone One', cursive; font-size: 18px; cursor: pointer; transition: all 0.15s; box-shadow: 0 6px 20px rgba(45,206,137,0.3); }
 .btn-correct:active { transform: scale(0.95); }
+.btn-skip { width: 100%; max-width: 380px; padding: 10px; border-radius: 14px; border: none; background: transparent; color: var(--muted); font-family: 'Nunito',sans-serif; font-weight: 800; font-size: 13px; cursor: pointer; }
 
-.btn-skip {
-  width: 100%;
-  max-width: 380px;
-  padding: 12px;
-  border-radius: 14px;
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  font-family: 'Nunito', sans-serif;
-  font-weight: 800;
-  font-size: 14px;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-}
-
-/* ===== VÝSLEDKY ===== */
-#s-results {
-  align-items: center;
-  justify-content: flex-start;
-  background: radial-gradient(ellipse at 50% 0%, #2d0a4e, #0d0d0d 60%);
-  overflow-y: auto;
-  padding: 40px 24px calc(40px + env(safe-area-inset-bottom));
-  gap: 16px;
-}
-
+/* ===== RESULTS ===== */
+#s-results { align-items: center; justify-content: flex-start; background: radial-gradient(ellipse at 50% 0%,#2d0a4e,#0d0d0d 60%); overflow-y: auto; padding: 40px 24px calc(40px + env(safe-area-inset-bottom)); gap: 16px; }
 .results-cat { font-size: 70px; text-align: center; animation: float 3s ease-in-out infinite; }
-
-.results-title {
-  font-family: 'Paytone One', cursive;
-  font-size: 36px;
-  text-align: center;
-  background: linear-gradient(135deg, #fff, #c084fc, #ffd700);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.winner-card {
-  width: 100%;
-  max-width: 380px;
-  background: linear-gradient(135deg, rgba(192,132,252,0.2), rgba(192,132,252,0.05));
-  border: 2px solid var(--accent);
-  border-radius: 20px;
-  padding: 20px;
-  text-align: center;
-}
-
+.results-title { font-family: 'Paytone One', cursive; font-size: 32px; text-align: center; background: linear-gradient(135deg,#fff,#c084fc,#ffd700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.winner-card { width: 100%; max-width: 380px; background: linear-gradient(135deg,rgba(192,132,252,0.2),rgba(192,132,252,0.05)); border: 2px solid var(--accent); border-radius: 20px; padding: 20px; text-align: center; }
 .winner-label { font-size: 13px; color: var(--accent); font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
-.winner-name { font-family: 'Paytone One', cursive; font-size: 30px; }
+.winner-name { font-family: 'Paytone One', cursive; font-size: 28px; }
 .winner-score { font-size: 15px; color: var(--muted); margin-top: 4px; }
-
-.all-scores {
-  width: 100%;
-  max-width: 380px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.score-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--card);
-  border-radius: 14px;
-  padding: 14px 16px;
-  border: 1px solid #333;
-}
-
+.all-scores { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 8px; }
+.score-row { display: flex; align-items: center; justify-content: space-between; background: var(--card); border-radius: 14px; padding: 14px 16px; border: 1px solid #333; }
 .score-row-name { font-weight: 800; font-size: 16px; display: flex; align-items: center; gap: 8px; }
 .score-row-pts { font-family: 'Paytone One', cursive; font-size: 24px; color: var(--accent); }
+.btn-play-again { width: 100%; max-width: 380px; background: linear-gradient(135deg,#c084fc,#7c3aed); color: white; border: none; border-radius: 18px; padding: 18px; font-family: 'Paytone One', cursive; font-size: 20px; cursor: pointer; box-shadow: 0 8px 30px rgba(192,132,252,0.4); }
 
-.btn-play-again {
-  width: 100%;
-  max-width: 380px;
-  background: linear-gradient(135deg, #c084fc, #7c3aed);
-  color: white;
-  border: none;
-  border-radius: 18px;
-  padding: 18px;
-  font-family: 'Paytone One', cursive;
-  font-size: 22px;
-  cursor: pointer;
-  box-shadow: 0 8px 30px rgba(192,132,252,0.4);
-}
-
-/* PULSE ANIM */
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-
-.task-card.pop { animation: pulse 0.3s ease; }
-
-/* TRANSITIONS */
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.screen.active { animation: slideUp 0.35s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+.screen.active { animation: fadeIn 0.3s ease; }
 </style>
 </head>
 <body>
 
-<!-- ===== INTRO ===== -->
+<!-- INTRO -->
 <div class="screen active" id="s-intro">
   <div class="stars" id="stars"></div>
   <div class="cat-hero">🐈‍⬛</div>
   <div class="intro-greeting">Speciálně pro</div>
   <div class="intro-title">Irmi Hladíková</div>
-  <div class="intro-sub" style="margin-top:8px">
-    Tvoje osobní verze Activity 🖤<br>
-    <span>S láskou připravená jen pro tebe</span>
-  </div>
-  <button class="btn-big" onclick="showScreen('s-setup')" style="margin-top:20px">
-    🐾 Hrát!
-  </button>
+  <div class="intro-sub" style="margin-top:8px">Tvoje osobní Activity 🖤<br><span>S láskou připravená jen pro tebe</span></div>
+  <button class="btn-big" onclick="showScreen('s-setup')" style="margin-top:20px">🐾 Hrát!</button>
   <div class="version-note">🖤 Irmi Edition 🖤</div>
 </div>
 
-<!-- ===== SETUP ===== -->
+<!-- SETUP -->
 <div class="screen" id="s-setup">
   <div class="setup-header">
     <div class="setup-title">🐾 Nastavení hry</div>
     <div class="setup-sub">Pojmenujte týmy a vyber délku hry</div>
   </div>
   <div class="setup-body">
-
     <div class="section-label">Počet týmů</div>
     <div class="team-count-row">
       <div class="team-count-btn selected" onclick="setTeamCount(2)">2 týmy</div>
       <div class="team-count-btn" onclick="setTeamCount(3)">3 týmy</div>
       <div class="team-count-btn" onclick="setTeamCount(4)">4 týmy</div>
     </div>
-
     <div class="section-label">Názvy týmů</div>
     <div class="team-inputs" id="teamInputs"></div>
-
-    <div class="section-label">Délka hry</div>
-    <div class="length-row">
-      <div class="length-btn selected" onclick="setLength(10, this)">Rychlá<br><small>10 kol</small></div>
-      <div class="length-btn" onclick="setLength(20, this)">Střední<br><small>20 kol</small></div>
-      <div class="length-btn" onclick="setLength(35, this)">Dlouhá<br><small>35 kol</small></div>
+    <div class="section-label">Délka hry (počet políček)</div>
+    <div class="length-row" id="lengthRow">
+      <div class="length-btn selected" onclick="setLength(10,this)">Rychlá<br><small>10 políček</small></div>
+      <div class="length-btn" onclick="setLength(20,this)">Střední<br><small>20 políček</small></div>
+      <div class="length-btn" onclick="setLength(30,this)">Dlouhá<br><small>30 políček</small></div>
     </div>
-
     <div class="section-label">Čas na úkol</div>
-    <div class="length-row">
-      <div class="length-btn" onclick="setTime(30, this)">30s<br><small>Rychle</small></div>
-      <div class="length-btn selected" onclick="setTime(60, this)">60s<br><small>Normálně</small></div>
-      <div class="length-btn" onclick="setTime(90, this)">90s<br><small>Pomalu</small></div>
+    <div class="length-row" id="timeRow">
+      <div class="length-btn" onclick="setTime(30,this)">30s<br><small>Rychle</small></div>
+      <div class="length-btn selected" onclick="setTime(60,this)">60s<br><small>Normálně</small></div>
+      <div class="length-btn" onclick="setTime(90,this)">90s<br><small>Pomalu</small></div>
     </div>
-
   </div>
   <div class="setup-footer">
     <button class="btn-big" onclick="startGame()">🎮 Začít hru!</button>
   </div>
 </div>
 
-<!-- ===== HRA ===== -->
-<div class="screen" id="s-game">
-  <div class="game-top">
-    <div class="teams-track" id="teamsTrack"></div>
-    <div class="round-info">
-      <div class="current-team-label" id="currentTeamLabel">Tým 1</div>
-      <div class="round-badge" id="roundBadge">Kolo 1 / 10</div>
+<!-- BOARD -->
+<div class="screen" id="s-board">
+  <div class="board-header">
+    <div class="board-turn-info">
+      <div class="board-turn-label" id="boardTurnLabel"></div>
+      <div class="board-round-badge" id="boardRoundBadge"></div>
+    </div>
+    <div class="scores-row" id="scoresRow"></div>
+  </div>
+  <div class="board-wrap">
+    <div class="board-instruction" id="boardInstruction"></div>
+    <div class="board-container">
+      <svg class="board-svg" id="boardSvg" xmlns="http://www.w3.org/2000/svg"></svg>
     </div>
   </div>
+</div>
 
+<!-- TASK -->
+<div class="screen" id="s-game">
+  <div class="game-top">
+    <div class="game-team-label" id="gameTeamLabel"></div>
+    <div class="game-round-badge" id="gameRoundBadge"></div>
+  </div>
   <div class="game-center">
     <div class="task-card" id="taskCard">
-      <div class="task-type-badge">
-        <span class="task-type-icon" id="taskIcon">🎨</span>
-        <span id="taskTypeName">Kresli</span>
-      </div>
+      <div class="task-type-badge"><span id="taskIcon">🎨</span>&nbsp;<span id="taskTypeName">Kresli</span></div>
       <div class="task-word" id="taskWord">Kočička</div>
-      <div class="task-rule" id="taskRule">Nakresli slovo — bez písmen, číslic a mluvení</div>
+      <div class="task-rule" id="taskRule"></div>
     </div>
-
     <div class="timer-ring-wrap">
-      <svg width="120" height="120" viewBox="0 0 120 120">
-        <circle class="timer-ring-bg" cx="60" cy="60" r="52" fill="none" stroke-width="8"/>
-        <circle class="timer-ring-fill" id="timerRing" cx="60" cy="60" r="52" fill="none" stroke-width="8" stroke-linecap="round"/>
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle class="timer-ring-bg" cx="50" cy="50" r="45" fill="none" stroke-width="7"/>
+        <circle class="timer-ring-fill" id="timerRing" cx="50" cy="50" r="45" fill="none" stroke-width="7" stroke-linecap="round"/>
       </svg>
       <div class="timer-number" id="timerNum">60</div>
     </div>
-
     <div class="action-row">
-      <button class="btn-wrong" onclick="wrongAnswer()">✗ Neuhodli</button>
-      <button class="btn-correct" onclick="correctAnswer()">✓ Uhodli!</button>
+      <button class="btn-wrong" onclick="resolveTask(false)">✗ Neuhodli</button>
+      <button class="btn-correct" onclick="resolveTask(true)">✓ Uhodli!</button>
     </div>
     <button class="btn-skip" onclick="skipCard()">přeskočit slovo →</button>
   </div>
 </div>
 
-<!-- ===== VÝSLEDKY ===== -->
+<!-- RESULTS -->
 <div class="screen" id="s-results">
   <div class="results-cat">🐈‍⬛</div>
   <div class="results-title">Konec hry!</div>
@@ -686,289 +255,279 @@ body {
 <script>
 // ===== POJMY =====
 const POJMY = {
-  kresli: [
-    // Kočičí téma
-    "sphynx kočka", "kočičí vousky", "kočičí drápy", "kočičí ocásek", "kočka na okně",
-    "kočka přede", "kočka spí", "kočičí uši", "kočka a myš", "kočičí stopa",
-    // Zvířata
-    "slon", "tučňák", "žirafa", "papoušek", "lenochod", "mravenec", "chobotnice",
-    "jezevec", "vydra", "lemur", "kapybara", "tapír",
-    // Jídlo
-    "sushi", "palačinka", "zmrzlina", "avokádo", "pizza", "strouhanka", "kávový šálek",
-    "bageta", "buchtička", "smoothie", "waffle", "makronka",
-    // Aktivity
-    "jóga", "meditace", "tanec", "plavání", "výlet", "zahradničení", "vaření",
-    // Věci
-    "deštník", "sluchátka", "svíčka", "polštář", "hamaka", "záložka do knihy",
-    // Příroda
-    "duha", "bouřka", "sněhová vločka", "západ slunce", "měsíc v úplňku", "kaktus",
-    // Abstrakce — lehčí
-    "štěstí", "únava", "překvapení", "nuda", "hlad"
-  ],
-  popis: [
-    // Kočičí téma
-    "kočičí přede", "kočičí instinkt", "kočka vždy přistane na nohy", "sphynx je bez srsti",
-    "kočky mají 9 životů", "kočičí noc vidění", "kočka a klbko vlny",
-    // Běžný život
-    "prokrastinace", "déjà vu", "komfort zóna", "ranní rutina", "zapomínání snů",
-    "závislost na kávě", "nedělní nálada", "scrollování sociálních sítí",
-    // Přísloví & fráze
-    "každý problém má řešení", "lepší pozdě než nikdy", "zlaté české ručičky",
-    "dvakrát měř jednou řež", "bez práce nejsou koláče",
-    // Zábavné
-    "telefonovat rodičům", "ztracený klíč od bytu", "nakupování bez seznamu",
-    "sledování seriálu v jednom tahu", "spát do poledne",
-    // Pojmy
-    "gravitace", "empatie", "nostalgie", "chaos", "rutina", "intuice",
-    "dovolená", "karanténa", "selfie", "playlist", "algoritmus",
-    // Emoce
-    "nervozita před prezentací", "radost z malých věcí", "přetažení po práci"
-  ],
-  pantomima: [
-    // Kočičí pohyby
-    "kočka se protahuje", "kočka loví myš", "kočka se škrábe", "kočka přistane na nohy",
-    "kočka se opaluje na slunci", "kočka pije vodu z kohoutku",
-    // Sporty & pohyb
-    "vzpírání", "skok do vody", "lyžování", "box", "tenis", "surfování",
-    "šplhání po skále", "skoky přes švihadlo",
-    // Každodenní situace
-    "čištění zubů", "česání vlasů", "vaření polévky", "parkování auta",
-    "hledání klíčů v kabelce", "chytání něčeho co spadlo",
-    // Emoce & stavy
-    "být strašně unavený", "mít radost ze surprise", "být zmražený zimou",
-    "tancovat sám doma", "zpívat ve sprše", "smát se nahlas",
-    // Zvířata
-    "hrát si na medvěda", "být tučňák", "létat jako pták", "plazit se jako had",
-    // Zábavné akce
-    "selfie s kamarádkou", "tanec na párty", "hledat wifi heslo",
-    "čekat na autobus v dešti", "dělat si kávu polospánku"
-  ]
+  kresli: ["sphynx kočka","kočičí vousky","kočičí drápy","kočičí ocásek","kočka na okně","kočka přede","kočka spí","kočičí uši","kočka a myš","kočičí stopa","slon","tučňák","žirafa","papoušek","lenochod","mravenec","chobotnice","vydra","lemur","kapybara","sushi","palačinka","zmrzlina","avokádo","pizza","kávový šálek","bageta","waffle","makronka","jóga","meditace","tanec","plavání","výlet","zahradničení","vaření","deštník","sluchátka","svíčka","polštář","hamaka","záložka do knihy","duha","bouřka","sněhová vločka","západ slunce","měsíc v úplňku","kaktus","štěstí","únava","překvapení","nuda","hlad"],
+  popis: ["kočičí přede","kočičí instinkt","kočka vždy přistane na nohy","sphynx je bez srsti","kočky mají 9 životů","kočičí noční vidění","kočka a klbko vlny","prokrastinace","déjà vu","komfort zóna","ranní rutina","zapomínání snů","závislost na kávě","nedělní nálada","scrollování sociálních sítí","každý problém má řešení","lepší pozdě než nikdy","zlaté české ručičky","dvakrát měř jednou řež","bez práce nejsou koláče","telefonovat rodičům","ztracený klíč od bytu","nakupování bez seznamu","sledování seriálu v jednom tahu","spát do poledne","gravitace","empatie","nostalgie","chaos","rutina","intuice","dovolená","selfie","playlist","algoritmus","nervozita před prezentací","radost z malých věcí","přetažení po práci"],
+  pantomima: ["kočka se protahuje","kočka loví myš","kočka se škrábe","kočka přistane na nohy","kočka se opaluje na slunci","kočka pije vodu z kohoutku","vzpírání","skok do vody","lyžování","box","tenis","surfování","šplhání po skále","skoky přes švihadlo","čištění zubů","česání vlasů","vaření polévky","parkování auta","hledání klíčů v kabelce","chytání něčeho co spadlo","být strašně unavený","mít radost ze surprise","být zmražený zimou","tancovat sám doma","zpívat ve sprše","smát se nahlas","hrát si na medvěda","být tučňák","létat jako pták","plazit se jako had","selfie s kamarádkou","tanec na párty","hledat wifi heslo","čekat na autobus v dešti","dělat si kávu polospánku"]
 };
-
 const TYPY = [
-  { key: 'kresli', name: 'Kresli', icon: '🎨', rule: 'Nakresli slovo — bez písmen, číslic a mluvení', cls: 'kresli' },
-  { key: 'popis', name: 'Popiš', icon: '💬', rule: 'Popiš slovo — nesmíš říct samo slovo ani jeho části', cls: 'popis' },
-  { key: 'pantomima', name: 'Pantomima', icon: '🎭', rule: 'Předveď pantomimou — bez slov, zvuků a ukazování na věci', cls: 'pantomima' },
+  {key:'kresli',name:'Kresli',icon:'🎨',rule:'Nakresli slovo — bez písmen, číslic a mluvení',cls:'kresli'},
+  {key:'popis',name:'Popiš',icon:'💬',rule:'Popiš slovo — nesmíš říct samo slovo ani jeho části',cls:'popis'},
+  {key:'pantomima',name:'Pantomima',icon:'🎭',rule:'Předveď pantomimou — bez slov, zvuků a ukazování na věci',cls:'pantomima'},
 ];
 
-// ===== STAV HRY =====
-let teamCount = 2;
-let totalRounds = 10;
-let timePerRound = 60;
-let teams = [];
-let currentTeamIdx = 0;
-let currentRound = 0;
-let timerInterval = null;
-let timeLeft = 60;
-let usedWords = { kresli: new Set(), popis: new Set(), pantomima: new Set() };
-let currentTaskType = null;
+const TEAM_EMOJIS  = ['🐱','🐾','🖤','✨'];
+const TEAM_CATS    = ['🐱','🐈','🐈‍⬛','😸'];
+const TEAM_COLORS  = ['#c084fc','#4ecdc4','#ff6b6b','#ffe66d'];
+const TEAM_DEFAULTS= ['Tým Sphynx','Tým Purrr','Tým Chaos','Tým Čtyři'];
 
-const TEAM_EMOJIS = ['🐱', '🐾', '🖤', '✨'];
-const TEAM_DEFAULTS = ['Tým Sphynx', 'Tým Purrr', 'Tým Chaos', 'Tým Čtyři'];
+// STATE
+let teamCount=2, totalFields=10, timePerRound=60;
+let teams=[], currentTeamIdx=0, currentRound=1;
+let timerInterval=null, timeLeft=60;
+let usedWords={kresli:new Set(),popis:new Set(),pantomima:new Set()};
+let currentTaskType=null;
+let pendingCorrect=null; // null = před úkolem, true/false = po úkolu
 
-// ===== HVĚZDIČKY =====
-(function createStars() {
-  const container = document.getElementById('stars');
-  for (let i = 0; i < 60; i++) {
-    const s = document.createElement('div');
-    s.className = 'star';
-    s.style.cssText = `
-      left:${Math.random()*100}%;
-      top:${Math.random()*100}%;
-      --d:${2+Math.random()*4}s;
-      --delay:${Math.random()*4}s;
-      --op:${0.3+Math.random()*0.7};
-      width:${1+Math.random()*3}px;
-      height:${1+Math.random()*3}px;
-    `;
-    container.appendChild(s);
+// BOARD layout
+const COLS=5;
+let cells=[];
+
+function buildCells(n){
+  cells=[];
+  const sz=54, pad=18;
+  const rows=Math.ceil(n/COLS);
+  for(let i=0;i<n;i++){
+    const row=Math.floor(i/COLS);
+    const col=i%COLS;
+    const ac=(row%2===0)?col:(COLS-1-col);
+    cells.push({x:pad+ac*sz+sz/2, y:pad+row*sz+sz/2, idx:i});
+  }
+  const svgW=COLS*sz+pad*2;
+  const svgH=rows*sz+pad*2;
+  document.getElementById('boardSvg').setAttribute('viewBox',`0 0 ${svgW} ${svgH}`);
+}
+
+// STARS
+(function(){
+  const c=document.getElementById('stars');
+  for(let i=0;i<60;i++){
+    const s=document.createElement('div'); s.className='star';
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--delay:${Math.random()*4}s;--op:${0.3+Math.random()*0.7};width:${1+Math.random()*3}px;height:${1+Math.random()*3}px;`;
+    c.appendChild(s);
   }
 })();
 
-// ===== SETUP FUNKCE =====
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
+// SETUP
+function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function setTeamCount(n){ teamCount=n; document.querySelectorAll('.team-count-btn').forEach((b,i)=>b.classList.toggle('selected',i===n-2)); renderTeamInputs(); }
+function setLength(n,el){ totalFields=n; document.getElementById('lengthRow').querySelectorAll('.length-btn').forEach(b=>b.classList.remove('selected')); el.classList.add('selected'); }
+function setTime(n,el){ timePerRound=n; document.getElementById('timeRow').querySelectorAll('.length-btn').forEach(b=>b.classList.remove('selected')); el.classList.add('selected'); }
 
-function setTeamCount(n) {
-  teamCount = n;
-  document.querySelectorAll('.team-count-btn').forEach((b, i) => {
-    b.classList.toggle('selected', i === n - 2);
-  });
-  renderTeamInputs();
-}
-
-function setLength(n, el) {
-  totalRounds = n;
-  document.querySelectorAll('.length-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-function setTime(n, el) {
-  timePerRound = n;
-  el.closest('.length-row').querySelectorAll('.length-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-function renderTeamInputs() {
-  const wrap = document.getElementById('teamInputs');
-  wrap.innerHTML = '';
-  for (let i = 0; i < teamCount; i++) {
-    const row = document.createElement('div');
-    row.className = 'team-input-row';
-    row.innerHTML = `
-      <div class="team-emoji">${TEAM_EMOJIS[i]}</div>
-      <input class="team-input" type="text" placeholder="${TEAM_DEFAULTS[i]}" id="teamInput${i}" maxlength="20">
-    `;
+function renderTeamInputs(){
+  const wrap=document.getElementById('teamInputs'); wrap.innerHTML='';
+  for(let i=0;i<teamCount;i++){
+    const row=document.createElement('div'); row.className='team-input-row';
+    row.innerHTML=`<div class="team-emoji">${TEAM_EMOJIS[i]}</div><input class="team-input" type="text" placeholder="${TEAM_DEFAULTS[i]}" id="teamInput${i}" maxlength="20">`;
     wrap.appendChild(row);
   }
 }
-
 renderTeamInputs();
 
-// ===== START HRY =====
-function startGame() {
-  teams = [];
-  for (let i = 0; i < teamCount; i++) {
-    const input = document.getElementById(`teamInput${i}`);
-    const name = input.value.trim() || TEAM_DEFAULTS[i];
-    teams.push({ name, emoji: TEAM_EMOJIS[i], score: 0 });
+// START
+function startGame(){
+  teams=[];
+  for(let i=0;i<teamCount;i++){
+    const v=document.getElementById(`teamInput${i}`).value.trim()||TEAM_DEFAULTS[i];
+    teams.push({name:v,emoji:TEAM_EMOJIS[i],cat:TEAM_CATS[i],color:TEAM_COLORS[i],score:0,position:0});
   }
-  currentTeamIdx = 0;
-  currentRound = 0;
-  usedWords = { kresli: new Set(), popis: new Set(), pantomima: new Set() };
-
-  showScreen('s-game');
-  renderTeamsTrack();
-  nextTurn();
+  currentTeamIdx=0; currentRound=1; pendingCorrect=null;
+  usedWords={kresli:new Set(),popis:new Set(),pantomima:new Set()};
+  buildCells(totalFields);
+  showScreen('s-board');
+  renderBoard(); updateHeader();
 }
 
-// ===== HRA =====
-function renderTeamsTrack() {
-  const track = document.getElementById('teamsTrack');
-  track.innerHTML = teams.map((t, i) => `
-    <div class="team-chip ${i === currentTeamIdx ? 'current' : ''}" id="chip${i}">
-      ${t.emoji} ${t.name}
-      <span class="team-score">${t.score}</span>
-    </div>
-  `).join('');
-}
+// BOARD RENDER
+function renderBoard(){
+  const svg=document.getElementById('boardSvg');
+  svg.innerHTML='';
 
-function nextTurn() {
-  if (currentRound >= totalRounds) {
-    endGame();
-    return;
+  // Lines
+  for(let i=0;i<cells.length-1;i++){
+    const a=cells[i],b=cells[i+1];
+    const el=document.createElementNS('http://www.w3.org/2000/svg','line');
+    el.setAttribute('x1',a.x);el.setAttribute('y1',a.y);
+    el.setAttribute('x2',b.x);el.setAttribute('y2',b.y);
+    el.setAttribute('stroke','#2a2a2a');el.setAttribute('stroke-width','3');
+    el.setAttribute('stroke-dasharray','4 4');
+    svg.appendChild(el);
   }
 
-  // Vyber typ úkolu náhodně
-  const typeIdx = Math.floor(Math.random() * TYPY.length);
-  currentTaskType = TYPY[typeIdx];
+  const curPos=teams[currentTeamIdx].position;
+  const nextIdx=curPos+1;
+  const isClickable=!isGameOver()&&nextIdx<totalFields;
 
-  // Vyber slovo
-  const pool = POJMY[currentTaskType.key];
-  const available = pool.filter(w => !usedWords[currentTaskType.key].has(w));
-  let word;
-  if (available.length === 0) {
-    usedWords[currentTaskType.key].clear();
-    word = pool[Math.floor(Math.random() * pool.length)];
+  cells.forEach((cell,i)=>{
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('id',`cell-g-${i}`);
+
+    const isStart=i===0, isFinish=i===totalFields-1;
+    const isNext=i===nextIdx && pendingCorrect===null;
+    const isResult=i===nextIdx && pendingCorrect!==null;
+    const teamsHere=teams.filter(t=>t.position===i&&i>0);
+
+    // Pulse anim for next cell
+    if(isNext){
+      const pa=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      pa.setAttribute('cx',cell.x);pa.setAttribute('cy',cell.y);pa.setAttribute('r','28');
+      pa.setAttribute('fill','none');pa.setAttribute('stroke','#c084fc');pa.setAttribute('stroke-width','2');
+      pa.setAttribute('opacity','0');
+      const an1=document.createElementNS('http://www.w3.org/2000/svg','animate');
+      an1.setAttribute('attributeName','r');an1.setAttribute('values','22;32;22');an1.setAttribute('dur','1.4s');an1.setAttribute('repeatCount','indefinite');
+      const an2=document.createElementNS('http://www.w3.org/2000/svg','animate');
+      an2.setAttribute('attributeName','opacity');an2.setAttribute('values','0.6;0;0.6');an2.setAttribute('dur','1.4s');an2.setAttribute('repeatCount','indefinite');
+      pa.appendChild(an1);pa.appendChild(an2);
+      g.appendChild(pa);
+    }
+
+    // Circle
+    const circ=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    circ.setAttribute('cx',cell.x);circ.setAttribute('cy',cell.y);circ.setAttribute('r','22');
+    let fill='#1c1c1c', stroke='#2a2a2a', sw='2';
+    if(isFinish){fill='#1a0a30';stroke='#c084fc';sw='3';}
+    else if(isStart){fill='#0a200f';stroke='#2dce89';sw='3';}
+    else if(isNext){fill='rgba(192,132,252,0.15)';stroke='#c084fc';sw='3';}
+    else if(isResult&&pendingCorrect){fill='rgba(45,206,137,0.15)';stroke='#2dce89';sw='3';}
+    else if(isResult&&!pendingCorrect){fill='rgba(255,107,107,0.1)';stroke='#ff6b6b';sw='2';}
+    circ.setAttribute('fill',fill);circ.setAttribute('stroke',stroke);circ.setAttribute('stroke-width',sw);
+    g.appendChild(circ);
+
+    // Number / icon label
+    const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+    txt.setAttribute('x',cell.x);txt.setAttribute('y',cell.y+5);
+    txt.setAttribute('text-anchor','middle');txt.setAttribute('font-size','11');
+    txt.setAttribute('font-family','Nunito,sans-serif');txt.setAttribute('font-weight','800');
+    if(isStart){txt.setAttribute('fill','#2dce89');txt.textContent='START';}
+    else if(isFinish){txt.setAttribute('fill','#c084fc');txt.textContent='🏆';}
+    else{txt.setAttribute('fill',isNext?'#c084fc':'#444');txt.textContent=String(i);}
+    g.appendChild(txt);
+
+    // Cat figurines
+    if(teamsHere.length>0){
+      teamsHere.forEach((team,ti)=>{
+        const ox=ti*16-(teamsHere.length-1)*8;
+        const catTxt=document.createElementNS('http://www.w3.org/2000/svg','text');
+        catTxt.setAttribute('x',cell.x+ox);catTxt.setAttribute('y',cell.y-20);
+        catTxt.setAttribute('text-anchor','middle');catTxt.setAttribute('font-size','20');
+        catTxt.textContent=team.cat;
+        g.appendChild(catTxt);
+        // color dot
+        const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        dot.setAttribute('cx',cell.x+ox);dot.setAttribute('cy',cell.y-6);
+        dot.setAttribute('r','3');dot.setAttribute('fill',team.color);
+        g.appendChild(dot);
+      });
+    }
+
+    // Click handler
+    if(isNext || (isResult && i===nextIdx)){
+      g.style.cursor='pointer';
+      g.addEventListener('click',()=>onCellClick(i));
+    }
+
+    svg.appendChild(g);
+  });
+}
+
+function onCellClick(cellIdx){
+  if(pendingCorrect===null){
+    // Launch task for this turn
+    launchTask();
   } else {
-    word = available[Math.floor(Math.random() * available.length)];
+    // Apply result: if correct, move team
+    if(pendingCorrect===true){
+      teams[currentTeamIdx].position=cellIdx;
+    }
+    pendingCorrect=null;
+    // Check win
+    if(teams[currentTeamIdx].position>=totalFields-1){ endGame(); return; }
+    // Next team
+    currentTeamIdx=(currentTeamIdx+1)%teams.length;
+    currentRound++;
+    renderBoard(); updateHeader();
   }
+}
+
+function isGameOver(){ return teams.some(t=>t.position>=totalFields-1); }
+
+function updateHeader(){
+  const team=teams[currentTeamIdx];
+  document.getElementById('boardTurnLabel').textContent=`${team.cat} Na tahu: ${team.name}`;
+  document.getElementById('boardRoundBadge').textContent=`Kolo ${currentRound}`;
+
+  document.getElementById('scoresRow').innerHTML=teams.map((t,i)=>`
+    <div class="score-chip ${i===currentTeamIdx?'current':''}">
+      ${t.cat} ${t.name} <span class="score-pts">${t.score}</span>
+    </div>`).join('');
+
+  const instr=document.getElementById('boardInstruction');
+  if(pendingCorrect===true){
+    instr.style.color='#2dce89'; instr.style.animation='none';
+    instr.textContent='✅ Uhodli! Klikni na políčko a posuň se vpřed.';
+  } else if(pendingCorrect===false){
+    instr.style.color='#ff6b6b'; instr.style.animation='none';
+    instr.textContent='❌ Neuhodli. Klikni pro předání tahu.';
+  } else {
+    instr.style.color='var(--accent)'; instr.style.animation='';
+    instr.textContent='🐾 Klikni na políčko pro spuštění úkolu!';
+  }
+}
+
+// TASK
+function launchTask(){
+  const ti=Math.floor(Math.random()*TYPY.length);
+  currentTaskType=TYPY[ti];
+  const pool=POJMY[currentTaskType.key];
+  const avail=pool.filter(w=>!usedWords[currentTaskType.key].has(w));
+  let word;
+  if(!avail.length){usedWords[currentTaskType.key].clear();word=pool[Math.floor(Math.random()*pool.length)];}
+  else{word=avail[Math.floor(Math.random()*avail.length)];}
   usedWords[currentTaskType.key].add(word);
 
-  // Nastav UI
-  const card = document.getElementById('taskCard');
-  card.className = `task-card ${currentTaskType.cls}`;
-  document.getElementById('taskIcon').textContent = currentTaskType.icon;
-  document.getElementById('taskTypeName').textContent = currentTaskType.name;
-  document.getElementById('taskWord').textContent = word;
-  document.getElementById('taskRule').textContent = currentTaskType.rule;
+  document.getElementById('taskCard').className=`task-card ${currentTaskType.cls}`;
+  document.getElementById('taskIcon').textContent=currentTaskType.icon;
+  document.getElementById('taskTypeName').textContent=currentTaskType.name;
+  document.getElementById('taskWord').textContent=word;
+  document.getElementById('taskRule').textContent=currentTaskType.rule;
+  const team=teams[currentTeamIdx];
+  document.getElementById('gameTeamLabel').textContent=`${team.cat} ${team.name}`;
+  document.getElementById('gameRoundBadge').textContent=`Kolo ${currentRound}`;
 
-  // Kolo info
-  const team = teams[currentTeamIdx];
-  document.getElementById('currentTeamLabel').textContent = `${team.emoji} ${team.name} je na řadě`;
-  document.getElementById('roundBadge').textContent = `Kolo ${currentRound + 1} / ${totalRounds}`;
-
-  renderTeamsTrack();
-  startTimer();
+  showScreen('s-game'); startTimer();
 }
 
-function startTimer() {
+// TIMER
+function startTimer(){
+  clearInterval(timerInterval); timeLeft=timePerRound; updateTimerUI();
+  timerInterval=setInterval(()=>{
+    timeLeft--; updateTimerUI();
+    if(timeLeft<=0){clearInterval(timerInterval); resolveTask(false);}
+  },1000);
+}
+function updateTimerUI(){
+  const circ=283, prog=timeLeft/timePerRound;
+  document.getElementById('timerNum').textContent=timeLeft;
+  document.getElementById('timerRing').style.strokeDashoffset=circ*(1-prog);
+  document.getElementById('timerRing').style.stroke=prog>0.5?'#c084fc':prog>0.25?'#ffe66d':'#ff6b6b';
+}
+
+function resolveTask(correct){
   clearInterval(timerInterval);
-  timeLeft = timePerRound;
-  updateTimerUI();
-
-  timerInterval = setInterval(() => {
-    timeLeft--;
-    updateTimerUI();
-    if (timeLeft <= 0) {
-      clearInterval(timerInterval);
-      wrongAnswer();
-    }
-  }, 1000);
+  if(correct) teams[currentTeamIdx].score++;
+  pendingCorrect=correct;
+  showScreen('s-board');
+  renderBoard(); updateHeader();
 }
 
-function updateTimerUI() {
-  document.getElementById('timerNum').textContent = timeLeft;
-  const circumference = 326;
-  const progress = timeLeft / timePerRound;
-  const offset = circumference * (1 - progress);
-  const ring = document.getElementById('timerRing');
-  ring.style.strokeDashoffset = offset;
+function skipCard(){ clearInterval(timerInterval); launchTask(); }
 
-  // Barva podle zbývajícího času
-  if (progress > 0.5) {
-    ring.style.stroke = '#c084fc';
-  } else if (progress > 0.25) {
-    ring.style.stroke = '#ffe66d';
-  } else {
-    ring.style.stroke = '#ff6b6b';
-  }
-}
-
-function correctAnswer() {
-  clearInterval(timerInterval);
-  teams[currentTeamIdx].score += 1;
-  advanceTurn();
-}
-
-function wrongAnswer() {
-  clearInterval(timerInterval);
-  advanceTurn();
-}
-
-function skipCard() {
-  // Přeskočení — jen vylosuje nové slovo, neposune kolo
-  clearInterval(timerInterval);
-  nextTurn();
-}
-
-function advanceTurn() {
-  currentRound++;
-  currentTeamIdx = (currentTeamIdx + 1) % teams.length;
-  setTimeout(() => nextTurn(), 300);
-}
-
-// ===== KONEC HRY =====
-function endGame() {
+// RESULTS
+function endGame(){
   showScreen('s-results');
-
-  const sorted = [...teams].sort((a, b) => b.score - a.score);
-  const winner = sorted[0];
-
-  document.getElementById('winnerCard').innerHTML = `
-    <div class="winner-label">🏆 Vítěz</div>
-    <div class="winner-name">${winner.emoji} ${winner.name}</div>
-    <div class="winner-score">${winner.score} bodů</div>
-  `;
-
-  document.getElementById('allScores').innerHTML = sorted.map((t, i) => `
-    <div class="score-row">
-      <div class="score-row-name">${i === 0 ? '🏆' : i === 1 ? '🥈' : i === 2 ? '🥉' : '  '} ${t.emoji} ${t.name}</div>
-      <div class="score-row-pts">${t.score}</div>
-    </div>
-  `).join('');
+  const sorted=[...teams].sort((a,b)=>b.score-a.score);
+  const w=sorted[0];
+  document.getElementById('winnerCard').innerHTML=`<div class="winner-label">🏆 Vítěz</div><div class="winner-name">${w.cat} ${w.name}</div><div class="winner-score">${w.score} bodů</div>`;
+  document.getElementById('allScores').innerHTML=sorted.map((t,i)=>`<div class="score-row"><div class="score-row-name">${['🏆','🥈','🥉',''][i]||''} ${t.cat} ${t.name}</div><div class="score-row-pts">${t.score}</div></div>`).join('');
 }
 </script>
 </body>
