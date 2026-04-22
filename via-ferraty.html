@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Via Ferraty">
+<title>Via Ferraty — Střední Evropa</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e1012;
+  --surface: #161a1e;
+  --card: #1c2026;
+  --border: #252b32;
+  --accent: #e8562a;
+  --accent2: #f0a500;
+  --green: #3cb878;
+  --blue: #4a9eff;
+  --text: #e8e8e0;
+  --muted: #6a7280;
+  --r: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ===== HEADER ===== */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(14,16,18,0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-top {
+  padding: 14px 16px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.logo-wrap {}
+.logo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  line-height: 1;
+  color: var(--text);
+}
+.logo span { color: var(--accent); }
+.logo-sub {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+.search-wrap {
+  flex: 1;
+  max-width: 220px;
+}
+
+.search-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px 8px 32px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236a7280' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 10px center;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--muted); }
+
+/* FILTERS */
+.filters {
+  padding: 0 16px 10px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.filters::-webkit-scrollbar { display: none; }
+
+.filter-btn {
+  flex-shrink: 0;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.filter-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.filter-btn:active { transform: scale(0.95); }
+
+/* SORT ROW */
+.sort-row {
+  padding: 0 16px 12px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.sort-label {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: 'Barlow Condensed', sans-serif;
+  flex-shrink: 0;
+}
+
+.sort-btn {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.sort-btn.active { border-color: var(--accent2); color: var(--accent2); }
+
+/* RESULTS COUNT */
+.results-count {
+  padding: 0 16px 8px;
+  font-size: 12px;
+  color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 1px;
+}
+.results-count span { color: var(--text); font-weight: 700; }
+
+/* ===== FEED ===== */
+.feed {
+  padding: 8px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+/* ===== FERRATA CARD ===== */
+.ferrata-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+  animation: fadeUp 0.3s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ferrata-card:active { transform: scale(0.99); }
+.ferrata-card:hover { border-color: #353d47; }
+
+/* Difficulty stripe */
+.diff-stripe {
+  height: 3px;
+  width: 100%;
+}
+
+.card-main {
+  padding: 14px 14px 12px;
+}
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.card-left { flex: 1; min-width: 0; }
+
+.card-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.card-location {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.diff-badge {
+  flex-shrink: 0;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 900;
+  font-size: 24px;
+  line-height: 1;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -1px;
+}
+
+/* PARAMS ROW */
+.params-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.param {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.param-label {
+  font-size: 9px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+.param-value {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+/* TAGS */
+.tags-row {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.tag-country { background: rgba(74,158,255,0.12); color: var(--blue); border: 1px solid rgba(74,158,255,0.2); }
+.tag-feature { background: rgba(232,86,42,0.1); color: var(--accent); border: 1px solid rgba(232,86,42,0.2); }
+.tag-season { background: rgba(60,184,120,0.1); color: var(--green); border: 1px solid rgba(60,184,120,0.2); }
+
+/* EXPAND BUTTON */
+.card-expand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.card-desc-preview {
+  font-size: 12px;
+  color: var(--muted);
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-right: 8px;
+}
+
+.expand-icon {
+  color: var(--muted);
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: transform 0.3s;
+}
+
+.ferrata-card.open .expand-icon { transform: rotate(180deg); }
+
+/* EXPANDED DETAIL */
+.card-detail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.16,1,0.3,1);
+  border-top: 0 solid var(--border);
+}
+
+.ferrata-card.open .card-detail {
+  max-height: 600px;
+  border-top-width: 1px;
+}
+
+.detail-inner {
+  padding: 14px;
+}
+
+.detail-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.65;
+  margin-bottom: 12px;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.detail-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.detail-item-label {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'Barlow Condensed', sans-serif;
+  margin-bottom: 3px;
+}
+
+.detail-item-value {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.tip-box {
+  background: rgba(232,86,42,0.08);
+  border: 1px solid rgba(232,86,42,0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.tip-box strong { color: var(--accent); }
+
+/* ===== DIFFICULTY COLORS ===== */
+.diff-A  { background: linear-gradient(135deg, #3cb878, #2a9960); color: #fff; }
+.diff-AB { background: linear-gradient(135deg, #6abf3a, #4a9e28); color: #fff; }
+.diff-B  { background: linear-gradient(135deg, #a8cc00, #8aaa00); color: #111; }
+.diff-BC { background: linear-gradient(135deg, #f0a500, #d08e00); color: #111; }
+.diff-C  { background: linear-gradient(135deg, #f07820, #d06010); color: #fff; }
+.diff-CD { background: linear-gradient(135deg, #e8562a, #c83e14); color: #fff; }
+.diff-D  { background: linear-gradient(135deg, #cc2244, #aa1030); color: #fff; }
+.diff-DE { background: linear-gradient(135deg, #8822cc, #6610aa); color: #fff; }
+.diff-E  { background: linear-gradient(135deg, #441188, #330077); color: #fff; }
+.diff-EF { background: linear-gradient(135deg, #220044, #110033); color: #fff; }
+.diff-F  { background: linear-gradient(135deg, #000, #111); color: var(--accent); border: 1px solid var(--accent); }
+
+.stripe-A  { background: #3cb878; }
+.stripe-AB { background: #6abf3a; }
+.stripe-B  { background: #a8cc00; }
+.stripe-BC { background: #f0a500; }
+.stripe-C  { background: #f07820; }
+.stripe-CD { background: #e8562a; }
+.stripe-D  { background: #cc2244; }
+.stripe-DE { background: #8822cc; }
+.stripe-E  { background: #441188; }
+.stripe-EF { background: #220044; }
+.stripe-F  { background: var(--accent); }
+
+/* EMPTY STATE */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+.empty-state p { font-size: 14px; }
+
+/* MOBILE SAFE AREA */
+.feed { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo-wrap">
+      <div class="logo">VIA<span>FE</span>RRATY</div>
+      <div class="logo-sub">Střední Evropa</div>
+    </div>
+    <div class="search-wrap">
+      <input class="search-input" type="text" placeholder="Hledat..." id="searchInput" oninput="applyFilters()">
+    </div>
+  </div>
+
+  <div class="filters" id="countryFilters">
+    <div class="filter-btn active" data-country="vse" onclick="setCountry('vse',this)">🌍 Vše</div>
+    <div class="filter-btn" data-country="CZ" onclick="setCountry('CZ',this)">🇨🇿 Česko</div>
+    <div class="filter-btn" data-country="AT" onclick="setCountry('AT',this)">🇦🇹 Rakousko</div>
+    <div class="filter-btn" data-country="SK" onclick="setCountry('SK',this)">🇸🇰 Slovensko</div>
+    <div class="filter-btn" data-country="SI" onclick="setCountry('SI',this)">🇸🇮 Slovinsko</div>
+    <div class="filter-btn" data-country="DE" onclick="setCountry('DE',this)">🇩🇪 Německo</div>
+    <div class="filter-btn" data-country="PL" onclick="setCountry('PL',this)">🇵🇱 Polsko</div>
+  </div>
+
+  <div class="sort-row">
+    <span class="sort-label">Řadit:</span>
+    <button class="sort-btn active" data-sort="difficulty-desc" onclick="setSort('difficulty-desc',this)">Nejtěžší</button>
+    <button class="sort-btn" data-sort="difficulty-asc" onclick="setSort('difficulty-asc',this)">Nejlehčí</button>
+    <button class="sort-btn" data-sort="elevation-desc" onclick="setSort('elevation-desc',this)">Převýšení</button>
+    <button class="sort-btn" data-sort="length-desc" onclick="setSort('length-desc',this)">Délka</button>
+    <button class="sort-btn" data-sort="name" onclick="setSort('name',this)">A–Z</button>
+  </div>
+
+  <div class="results-count" id="resultsCount"><span>0</span> ferrat</div>
+</div>
+
+<div class="feed" id="feed"></div>
+
+<script>
+// ===== DATA =====
+const FERRATY = [
+  // ======= ČESKO =======
+  {
+    id: 1,
+    name: "Pastýřská stěna",
+    region: "Děčín, Ústecký kraj",
+    country: "CZ",
+    countryName: "Česko",
+    diff: "B",
+    diffMax: "E",
+    diffLabel: "B–E",
+    diffNum: 3,
+    elevation: 70,
+    length: 300,
+    time: "1–3 hod",
+    altitude: 210,
+    season: "III–XI",
+    desc: "Největší ferratový park v Česku s 16 zajištěnými cestami různých obtížností přímo v centru Děčína. Výhled na řeku Labe, hrad Střekov a CHKO České Středohoří. Ideální pro celý den lezení.",
+    tip: "Nastupujte co nejdříve ráno — v létě bývají fronty. Lanový Karlův most je nejfotogeničtější místo.",
+    tags: ["Ferratový park", "Lanový most", "Výhled na Labe"],
+    gps: "50.7760, 14.2108"
+  },
+  {
+    id: 2,
+    name: "Via Ferrata Bechyně",
+    region: "Bechyně, Jihočeský kraj",
+    country: "CZ",
+    countryName: "Česko",
+    diff: "D",
+    diffMax: "E",
+    diffLabel: "D–E",
+    diffNum: 7,
+    elevation: 60,
+    length: 180,
+    time: "1–2 hod",
+    altitude: 390,
+    season: "IV–XI",
+    desc: "Ferrata nad řekou Lužnicí s prvním lanovým mostem v Česku. Téměř celá trasa vede v převisech. Jedna z technicky nejtěžších českých ferrat, vhodná jen pro zkušené lezce s výbornou silou v rukou.",
+    tip: "Lanový most délky 30 m visí 15 m nad řekou. Mokrý vápenec je extrémně kluzký — nevstupujte po dešti.",
+    tags: ["Převisy", "Lanový most", "Řeka Lužnice"],
+    gps: "49.2983, 14.4683"
+  },
+  {
+    id: 3,
+    name: "Kavárnička",
+    region: "Srbská Kamenice, České Švýcarsko",
+    country: "CZ",
+    countryName: "Česko",
+    diff: "B",
+    diffMax: "D",
+    diffLabel: "B–D",
+    diffNum: 3,
+    elevation: 80,
+    length: 350,
+    time: "1–2 hod",
+    altitude: 280,
+    season: "IV–XI",
+    desc: "Tři výstupové varianty (B, C, D) ve stinném lese Česko-saského Švýcarska. Ideální místo pro začátečníky i pokročilé. Možnost horního jištění — vhodné pro kurzy a skupiny.",
+    tip: "Ideální jako první ferrata. Příjemný stín i v horkých dnech — skála orientovaná na sever.",
+    tags: ["Vhodné pro začátečníky", "Kurzy", "České Švýcarsko"],
+    gps: "50.8543, 14.2975"
+  },
+  {
+    id: 4,
+    name: "Ferratový park Slaný",
+    region: "Slaný, Středočeský kraj",
+    country: "CZ",
+    countryName: "Česko",
+    diff: "B",
+    diffMax: "E",
+    diffLabel: "B–E",
+    diffNum: 4,
+    elevation: 40,
+    length: 150,
+    time: "30–90 min",
+    altitude: 330,
+    season: "III–XII",
+    desc: "Šest zajištěných cest na Slánské hoře: Enšpígl (C/D), Slánská promenáda (D/E), Cesta přátelství (B/C), Masochyst (D/E), Richtrovka (B/C) a Spirála (C). Krátké, ale technicky zajímavé trasy.",
+    tip: "Masochyst (D/E) má 7m převis — jedna z nejsilověji náročných pasáží v Česku. Vyžaduje trénink.",
+    tags: ["Sportovní lezení", "Vhodné pro trénink", "Převis 7m"],
+    gps: "50.2306, 14.0881"
+  },
+  {
+    id: 5,
+    name: "Via Ferrata Ledová stěna",
+    region: "Vír, Vysočina",
+    country: "CZ",
+    countryName: "Česko",
+    diff: "A",
+    diffMax: "B",
+    diffLabel: "A–B",
+    diffNum: 1,
+    elevation: 35,
+    length: 85,
+    time: "30 min",
+    altitude: 460,
+    season: "IV–XI",
+    desc: "První česká ferrata z roku 2011. Krátká a přístupná trasa vhodná pro naprosté začátečníky a rodiny s dětmi. Krásná příroda údolí řeky Svratky. Délka 85 m, převýšení jen 35 m.",
+    tip: "Úplně první ferrata v ČR. Perfektní pro první zkušenost s jistícím setem a pohybem na zajištěné cestě.",
+    tags: ["Začátečníci", "Rodiny s dětmi", "První ferrata v ČR"],
+    gps: "49.6144, 16.3136"
+  },
+  {
+    id: 6,
+    name: "Vaňov",
+    region: "Ústí nad Labem",
+    country: "CZ",
+    countryName: "Česko",
+    diff: "C",
+    diffMax: "C",
+    diffLabel: "C",
+    diffNum: 5,
+    elevation: 40,
+    length: 120,
+    time: "45 min",
+    altitude: 180,
+    season: "IV–XI",
+    desc: "Ferrata nad Labem nedaleko Ústí nad Labem. Po lehčím úvodu strmě stoupá komínem a skalní stěnou. Vyžaduje sílu v rukách, málo umělých stupů. Famózní výhled na Labe.",
+    tip: "Pozor na uvolněné kameny — přilba povinná. Komín může být nepříjemný pro lezce větší postavy.",
+    tags: ["Komín", "Výhled na Labe", "Síla v rukou"],
+    gps: "50.6850, 14.0800"
+  },
+  {
+    id: 7,
+    name: "Via Ferrata Peklo",
+    region: "Kolín, Středočeský kraj",
+    country: "CZ",
+    countryName: "Česko",
+    diff: "B",
+    diffMax: "C",
+    diffLabel: "B–C",
+    diffNum: 3,
+    elevation: 25,
+    length: 220,
+    time: "45–90 min",
+    altitude: 220,
+    season: "IV–X",
+    desc: "Jedna z nejnovějších ferrat v Česku (2023), vedoucí traverzem těsně nad hladinou rybníka Peklo. Volitelná varianta s lanovým mostem. Unikátní kombinace vodní hladiny a lezení.",
+    tip: "Horní varianta s lanovým mostem je výrazně zajímavější. Lezení nad vodou je psychicky náročnější než vypadá.",
+    tags: ["Nad vodní hladinou", "Lanový most", "Nová 2023"],
+    gps: "50.0200, 15.2100"
+  },
+
+  // ======= RAKOUSKO =======
+  {
+    id: 8,
+    name: "Intersport Klettersteig",
+    region: "Gosau, Dachstein, Horní Rakousko",
+    country: "AT",
+    countryName: "Rakousko",
+    diff: "D",
+    diffMax: "D",
+    diffLabel: "D",
+    diffNum: 7,
+    elevation: 550,
+    length: 1200,
+    time: "4–6 hod",
+    altitude: 1850,
+    season: "VI–X",
+    desc: "Jedna z nejslavnějších ferrat Rakouska s výhledem na ledovec Dachstein a jezero Gosausee. Kombinace vzdušných žebříků, dlouhých traversů a exponovaných stěn. Legendární trasa pro zkušené ferratisty.",
+    tip: "Ranní start (6–7h) nutností — odpoledne přichází bouřky. Výhled na Dachstein je nezapomenutelný.",
+    tags: ["Legenda Rakouska", "Výhled na ledovec", "Vzdušné žebříky"],
+    gps: "47.5280, 13.6030"
+  },
+  {
+    id: 9,
+    name: "Drachenwand",
+    region: "Mondsee, Salcbursko",
+    country: "AT",
+    countryName: "Rakousko",
+    diff: "C",
+    diffMax: "C",
+    diffLabel: "C",
+    diffNum: 5,
+    elevation: 530,
+    length: 800,
+    time: "3–4 hod",
+    altitude: 1176,
+    season: "V–X",
+    desc: "Jedna z nejpopulárnějších ferrat blízko Salcburku s nádherným výhledem na jezero Mondsee. Střední obtížnost — zvládne dobře připravený mírně pokročilý lezec. V hlavní sezóně bývají fronty.",
+    tip: "Nastupujte před 8h ráno pro vyhnití frontám. Boty s dobrou podrážkou — vápenec může být kluzký.",
+    tags: ["Výhled na Mondsee", "Populární trasa", "Vápenec"],
+    gps: "47.8530, 13.4400"
+  },
+  {
+    id: 10,
+    name: "Priel Klettersteig",
+    region: "Totes Gebirge, Horní Rakousko",
+    country: "AT",
+    countryName: "Rakousko",
+    diff: "C",
+    diffMax: "D",
+    diffLabel: "C–D",
+    diffNum: 6,
+    elevation: 900,
+    length: 2130,
+    time: "7–9 hod",
+    altitude: 2515,
+    season: "VI–IX",
+    desc: "Nejdelší ferrata v Rakousku — 2 130 metrů zajištěné cesty s převýšením 900 m na vrchol Großer Priel (2 515 m). Spojení několika historických tras. Celodenní expedice pro výborně připravené lezce.",
+    tip: "Plánujte jako víkendovou akci. Chata Prielschutzhaus nabízí nocování. Nástup velmi brzy ráno je nutností.",
+    tags: ["Nejdelší v Rakousku", "Přes 2500m", "Celodenní túra"],
+    gps: "47.7100, 14.0580"
+  },
+  {
+    id: 11,
+    name: "Postalmklamm",
+    region: "Strobl, Salcbursko",
+    country: "AT",
+    countryName: "Rakousko",
+    diff: "C",
+    diffMax: "F",
+    diffLabel: "C–F",
+    diffNum: 8,
+    elevation: 200,
+    length: 600,
+    time: "2–3 hod",
+    altitude: 900,
+    season: "V–X",
+    desc: "Dvě ferraty vedoucí dramatickou horskou soutěskou nad divokou říčkou. Druhá část obsahuje volitelný převis obtížnosti F — jeden z nejtěžších pasáží v Alpách. Cesta vede převážně ve stínu podél potoka.",
+    tip: "Převis F je volitelný a jde obejít. Cesta ve stínu — příjemná i v horkém létě. Vhodná obuv do vody.",
+    tags: ["Soutěska", "Volitelný F převis", "Potok"],
+    gps: "47.7520, 13.4830"
+  },
+  {
+    id: 12,
+    name: "Hans von Haidsteig",
+    region: "Rax, Dolní Rakousko",
+    country: "AT",
+    countryName: "Rakousko",
+    diff: "D",
+    diffMax: "D",
+    diffLabel: "D",
+    diffNum: 7,
+    elevation: 700,
+    length: 900,
+    time: "5–7 hod",
+    altitude: 1783,
+    season: "VI–X",
+    desc: "Klasika Dolního Rakouska vedoucí na vrchol Preiner Wand (1 783 m). Pestrá trasa kombinující lezení, žebříky, skalní komíny i traversy. Nejkrásnějším místem je úzký komín s dřevěnou Madonou.",
+    tip: "Výchozí bod Hirschwang — lanovka na Raxalpe. Doporučen nocleh na chatě Ottohaus pro celodenní výlet.",
+    tags: ["Klasika Dolního Rakouska", "Komín s Madonou", "Rax"],
+    gps: "47.7060, 15.6350"
+  },
+  {
+    id: 13,
+    name: "Sisi Panorama Klettersteig",
+    region: "Gosau, Salcbursko",
+    country: "AT",
+    countryName: "Rakousko",
+    diff: "D",
+    diffMax: "D",
+    diffLabel: "D",
+    diffNum: 7,
+    elevation: 500,
+    length: 1000,
+    time: "4–5 hod",
+    altitude: 1680,
+    season: "VI–X",
+    desc: "Obtížnostně srovnatelná s Intersport Klettersteig, ale méně frekventovaná. Panoramatické výhledy na ledovec a vrchol Dachsteinu. Vzdušné žebříky a exponované traversy.",
+    tip: "Méně turistů než Intersport — lepší zážitek. Výhledy na Dachstein jsou z této strany snad ještě lepší.",
+    tags: ["Dachstein výhled", "Méně turistů", "Panorama"],
+    gps: "47.5200, 13.6100"
+  },
+  {
+    id: 14,
+    name: "Attersee Klettersteig",
+    region: "Attersee, Horní Rakousko",
+    country: "AT",
+    countryName: "Rakousko",
+    diff: "D",
+    diffMax: "E",
+    diffLabel: "D–E",
+    diffNum: 8,
+    elevation: 400,
+    length: 700,
+    time: "3–4 hod",
+    altitude: 1100,
+    season: "V–X",
+    desc: "Klíčová pasáž obtížnosti D–E hned u nástupu, dále pohodovější B–C lezení s výhledy na jezero Attersee. Unikátní kombinace náročného startu a krásné expozice.",
+    tip: "Klíčová pasáž je hned na začátku — otestuje vás okamžitě. Zpáteční cesta podél jezera je krásná.",
+    tags: ["Výhled na jezero", "Náročný nástup", "Attersee"],
+    gps: "47.8900, 13.5300"
+  },
+  {
+    id: 15,
+    name: "Gamsleckenwand",
+    region: "Schladming, Steiermark",
+    country: "AT",
+    countryName: "Rakousko",
+    diff: "D",
+    diffMax: "F",
+    diffLabel: "D–F",
+    diffNum: 9,
+    elevation: 350,
+    length: 650,
+    time: "3–5 hod",
+    altitude: 1500,
+    season: "VI–X",
+    desc: "Ferrata ve stínu s osvěžujícím potokem — ideální pro horké letní dny. Převis Gamsleckenwand (F) je volitelný — pro silově zdatné jedince výjimečná výzva. Ferratový park Schladming nabízí 7 tras A–E.",
+    tip: "Výstup ve stínu — příjemné i v horkých dnech. F převis obejděte D traversem pokud nemáte jistotu silových předpokladů.",
+    tags: ["Ve stínu", "Ferratový park", "Volitelný F"],
+    gps: "47.3900, 13.7500"
+  },
+
+  // ======= SLOVENSKO =======
+  {
+    id: 16,
+    name: "Via Ferrata Kyseľ",
+    region: "Slovenský ráj, Košický kraj",
+    country: "SK",
+    countryName: "Slovensko",
+    diff: "C",
+    diffMax: "D",
+    diffLabel: "C–D",
+    diffNum: 6,
+    elevation: 300,
+    length: 500,
+    time: "3–4 hod",
+    altitude: 830,
+    season: "V–X",
+    desc: "Zajímavá ferrata ve Slovenském ráji vedoucí skalnatou soutěskou kaňonu Kyseľ. Kombinuje lezení, žebříky a traversy nad říčkou. Jeden z nejkrásnějších kaňonů Karpat.",
+    tip: "Slovenský ráj je ráj pro ferraty obecně — spojte s dalšími soutěskami (Suchá Belá, Piecky). Vybavení do vody nutností.",
+    tags: ["Slovenský ráj", "Soutěska", "Kaňon"],
+    gps: "48.9300, 20.4800"
+  },
+  {
+    id: 17,
+    name: "Ferrata HZS Martinské hole",
+    region: "Turčianske Teplice, Žilinský kraj",
+    country: "SK",
+    countryName: "Slovensko",
+    diff: "C",
+    diffMax: "C",
+    diffLabel: "C",
+    diffNum: 5,
+    elevation: 250,
+    length: 400,
+    time: "2–3 hod",
+    altitude: 1456,
+    season: "V–X",
+    desc: "Ferrata Horské záchranné služby s výstupem na Martinské hole. Střední obtížnost s krásným výhledem na Malou Fatru a okolní vrcholy. Dobře zajištěná a udržovaná.",
+    tip: "Na vrcholu je chata s výbornými haluškami. Kombinujte s výstupem na Veľký Kriváň.",
+    tags: ["Malá Fatra", "HZS ferrata", "Výhled na Kriváň"],
+    gps: "49.0500, 18.9200"
+  },
+  {
+    id: 18,
+    name: "Ferrata Dve veže",
+    region: "Súľov, Žilinský kraj",
+    country: "SK",
+    countryName: "Slovensko",
+    diff: "B",
+    diffMax: "C",
+    diffLabel: "B–C",
+    diffNum: 3,
+    elevation: 180,
+    length: 350,
+    time: "1.5–2.5 hod",
+    altitude: 680,
+    season: "IV–XI",
+    desc: "Ferrata vedoucí na ikonické skalní věže nad obcí Súľov. Výhled na Súľovské skaly je jedním z nejdramatičtějších v Karpatech. Vhodná pro mírně pokročilé lezce.",
+    tip: "Západ slunce z vrcholu věží je výjimečný. Kombinujte s túrou po Súľovských skalách.",
+    tags: ["Skalní věže", "Súľovské skaly", "Dramatický výhled"],
+    gps: "49.1300, 18.5800"
+  },
+  {
+    id: 19,
+    name: "Ferrata Skalka pri Kremnici",
+    region: "Kremnica, Banskobystrický kraj",
+    country: "SK",
+    countryName: "Slovensko",
+    diff: "B",
+    diffMax: "D",
+    diffLabel: "B–D",
+    diffNum: 4,
+    elevation: 120,
+    length: 280,
+    time: "1–2 hod",
+    altitude: 750,
+    season: "IV–XI",
+    desc: "Ferrata s několika variantami obtížnosti v okolí historického horního města Kremnice. Vhodná jako kombinace s návštěvou historického centra.",
+    tip: "Kremnica je historické zlaté horní město — výlet spojte s návštěvou hradu a mincovny.",
+    tags: ["Kremnica", "Historické město", "Více variant"],
+    gps: "48.7100, 18.9200"
+  },
+  {
+    id: 20,
+    name: "Ferrata Komín na Skalke",
+    region: "Trenčín, Trenčínský kraj",
+    country: "SK",
+    countryName: "Slovensko",
+    diff: "C",
+    diffMax: "D",
+    diffLabel: "C–D",
+    diffNum: 6,
+    elevation: 90,
+    length: 220,
+    time: "1–1.5 hod",
+    altitude: 400,
+    season: "IV–XI",
+    desc: "Sportovní ferrata s technicky zajímavým komínem v blízkosti Trenčína. Lezení uvnitř skalního komínu je unikátní zážitek. Vhodná pro zkušenější lezce hledající technickou výzvu.",
+    tip: "Komínové lezení vyžaduje specifickou techniku. Doporučujeme absolvovat kurz před prvním výstupem.",
+    tags: ["Skalní komín", "Technická výzva", "Trenčín"],
+    gps: "48.9000, 18.0400"
+  },
+
+  // ======= SLOVINSKO =======
+  {
+    id: 21,
+    name: "Ferrata Mala Mojstrovka",
+    region: "Julské Alpy, Triglav NP",
+    country: "SI",
+    countryName: "Slovinsko",
+    diff: "C",
+    diffMax: "C",
+    diffLabel: "C",
+    diffNum: 5,
+    elevation: 721,
+    length: 800,
+    time: "4 hod",
+    altitude: 2332,
+    season: "VII–IX",
+    desc: "Ferrata po severní stěně Malé Mojstrovky v Julských Alpách s výhledem na Triglav, Škrlaticu a Špik. Výstup z sedla Vršič (1611 m) — dostupné autem. Vzrušující a krásný výstup.",
+    tip: "Sedlo Vršič je turisticky přeplněné — přijeďte brzy ráno. Počasí v Julských Alpách se mění rychle.",
+    tags: ["Julské Alpy", "Výhled na Triglav", "Vršič"],
+    gps: "46.4300, 13.7500"
+  },
+  {
+    id: 22,
+    name: "Via Ferrata na Triglav",
+    region: "Julské Alpy, Triglav NP",
+    country: "SI",
+    countryName: "Slovinsko",
+    diff: "D",
+    diffMax: "D",
+    diffLabel: "D",
+    diffNum: 7,
+    elevation: 1600,
+    length: 2000,
+    time: "10–14 hod",
+    altitude: 2864,
+    season: "VII–IX",
+    desc: "Výstup na Triglav (2864 m) — nejvyšší vrchol Slovinska a Symbol národa. Ferraty vedou z více směrů, nejoblíbenější přes Kredaricu (chata ve 2515 m). Vícedenní expedice s nocí na chatě.",
+    tip: "Povinný nocleh na Triglavském domě (Triglav House). Rezervujte 3–4 měsíce dopředu — místa jsou vždy obsazená.",
+    tags: ["Nejvyšší bod Slovinska", "Vícedenní expedice", "Symbol národa"],
+    gps: "46.3791, 13.8371"
+  },
+  {
+    id: 23,
+    name: "Via Ferrata Via Italia",
+    region: "Mangartské sedlo, Slovinsko/Itálie",
+    country: "SI",
+    countryName: "Slovinsko",
+    diff: "C",
+    diffMax: "D",
+    diffLabel: "C–D",
+    diffNum: 6,
+    elevation: 300,
+    length: 500,
+    time: "3–4 hod",
+    altitude: 2679,
+    season: "VII–IX",
+    desc: "Ferrata budovaná italskou armádou po WWII na severní stěně Malého Mangartu. Vede přes státní hranici Slovinsko–Itálie. Velmi strmá, exponovaná a technicky náročná. Přístup z italského jezera Lago di Fusine.",
+    tip: "Ferrata překračuje státní hranici — originální zážitek. Start z italské strany je logisticky složitější.",
+    tags: ["Na hranici SI/IT", "WWII history", "Mangartské sedlo"],
+    gps: "46.4415, 13.6700"
+  },
+
+  // ======= NĚMECKO =======
+  {
+    id: 24,
+    name: "Berchtesgadener Hochthron",
+    region: "Berchtesgaden, Bavorsko",
+    country: "DE",
+    countryName: "Německo",
+    diff: "C",
+    diffMax: "D",
+    diffLabel: "C–D",
+    diffNum: 6,
+    elevation: 600,
+    length: 700,
+    time: "4–5 hod",
+    altitude: 1973,
+    season: "VI–X",
+    desc: "Ferrata v Berchtesgadenských Alpách s výhledem na Königssee, Watzmann a Tennengebirge. Kombinace skalního lezení a alpské turistiky. Jedna z nejkrásnějších ferrat Bavorska.",
+    tip: "Berchtesgaden je jedno z nejkrásnějších míst Bavorska — kombinujte s výletem na Königssee. Eagle's Nest (Orlí hnízdo Hitlera) je 10 min autem.",
+    tags: ["Výhled na Königssee", "Bavorské Alpy", "Watzmann"],
+    gps: "47.6000, 13.0500"
+  },
+  {
+    id: 25,
+    name: "Kaisergebirge Klettersteig",
+    region: "Wilder Kaiser, Tyrolsko/Bavorsko",
+    country: "DE",
+    countryName: "Německo",
+    diff: "D",
+    diffMax: "E",
+    diffLabel: "D–E",
+    diffNum: 8,
+    elevation: 800,
+    length: 1100,
+    time: "5–7 hod",
+    altitude: 1870,
+    season: "VI–X",
+    desc: "Ferraty v dramatickém pohoří Wilder Kaiser — jeden z nejkrásnějších ferratových okruhů Alp. Vápencové věže a stěny sahající stovky metrů. Vyžaduje výbornou kondici a zkušenosti.",
+    tip: "Wilder Kaiser nabízí desítky ferrat všech obtížností. Na jeden výjezd si vyberte 2–3 trasy různých obtížností.",
+    tags: ["Wilder Kaiser", "Vápencové věže", "Tyrolsko"],
+    gps: "47.5800, 12.3500"
+  },
+  {
+    id: 26,
+    name: "Seewand Klettersteig",
+    region: "Hohenschwangau, Allgäu",
+    country: "DE",
+    countryName: "Německo",
+    diff: "E",
+    diffMax: "E",
+    diffLabel: "E",
+    diffNum: 9,
+    elevation: 350,
+    length: 500,
+    time: "2–3 hod",
+    altitude: 1100,
+    season: "VI–X",
+    desc: "Jedna z nejobtížnějších ferrat Německa s technicky extrémními úseky. Seewand je synonymem pro horní hranici ferratové obtížnosti v německy mluvícím prostoru. Pouze pro velmi zkušené lezce v excelentní kondici.",
+    tip: "Obtížnost E není vhodná pro kohokoliv — objektivně hodnoťte svou sílu a zkušenosti. Mokrá skála je extrémně nebezpečná.",
+    tags: ["Extrémní obtížnost", "Pouze pro experty", "Allgäu"],
+    gps: "47.5700, 10.7400"
+  },
+
+  // ======= POLSKO =======
+  {
+    id: 27,
+    name: "Via Ferrata Łomnica",
+    region: "Krkonoše, Malopolskie",
+    country: "PL",
+    countryName: "Polsko",
+    diff: "B",
+    diffMax: "C",
+    diffLabel: "B–C",
+    diffNum: 3,
+    elevation: 200,
+    length: 400,
+    time: "2–3 hod",
+    altitude: 780,
+    season: "IV–XI",
+    desc: "Nejznámější polská ferrata v Krkonoších — zajímavá a přístupná trasa vhodná pro začátečníky i mírně pokročilé. Výhledy na polská Krkonoše. Populární výletní cíl z Krakova.",
+    tip: "Polské ferraty jsou méně turisticky přeplněné než rakouské — příjemné klidnější prostředí.",
+    tags: ["Krkonoše", "Polsko", "Přístupné"],
+    gps: "49.3700, 20.0800"
+  },
+  {
+    id: 28,
+    name: "Via Ferrata Orla Perć",
+    region: "Vysoké Tatry, Malopolskie",
+    country: "PL",
+    countryName: "Polsko",
+    diff: "D",
+    diffMax: "E",
+    diffLabel: "D–E",
+    diffNum: 8,
+    elevation: 1000,
+    length: 3700,
+    time: "8–12 hod",
+    altitude: 2291,
+    season: "VII–IX",
+    desc: "Legendární hřebenová trasa Orlí stezky ve Vysokých Tatrách — nejdelší a nejtěžší polská horská trasa. 3,7 km exponovaného hřebene s ferratovým zajištěním. Každoročně si vyžádá oběti — absolutně pouze pro zkušené.",
+    tip: "Orla Perć je legendou polského horolezectví. Vyžaduje alpinistické zkušenosti, navigaci v mlze a fyzičku na celý den. Nikdy sami.",
+    tags: ["Legendární trasa", "Vysoké Tatry", "Jen pro zkušené"],
+    gps: "49.2300, 19.9800"
+  },
+  {
+    id: 29,
+    name: "Ferrata Kościelec",
+    region: "Zakopane, Vysoké Tatry",
+    country: "PL",
+    countryName: "Polsko",
+    diff: "C",
+    diffMax: "D",
+    diffLabel: "C–D",
+    diffNum: 6,
+    elevation: 500,
+    length: 600,
+    time: "4–5 hod",
+    altitude: 2155,
+    season: "VII–IX",
+    desc: "Ferrata na výrazný skalnatý vrchol Kościelec nad Černým jezerem pod Kościelcem. Výhled na Morskie Oko a Tatranský hřeben. Jeden z nejkrásnějších výhledů v polských Tatrách.",
+    tip: "Start z Morskie Oko (výjezd autem nebo kočárem). Nástup od Černého jezera pod Kościelcem.",
+    tags: ["Morskie Oko", "Tatry", "Výhled"],
+    gps: "49.2200, 20.0200"
+  }
+];
+
+// DIFFICULTY ORDER
+const DIFF_ORDER = { 'A': 1, 'AB': 2, 'B': 3, 'BC': 4, 'C': 5, 'CD': 6, 'D': 7, 'DE': 8, 'E': 9, 'EF': 10, 'F': 11 };
+
+// STATE
+let activeCountry = 'vse';
+let activeSort = 'difficulty-desc';
+let searchQuery = '';
+let openCard = null;
+
+// INIT
+function init() {
+  applyFilters();
+}
+
+// FILTERS
+function setCountry(country, el) {
+  activeCountry = country;
+  document.querySelectorAll('#countryFilters .filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+
+function setSort(sort, el) {
+  activeSort = sort;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  searchQuery = document.getElementById('searchInput').value.toLowerCase();
+
+  let filtered = FERRATY.filter(f => {
+    const matchCountry = activeCountry === 'vse' || f.country === activeCountry;
+    const matchSearch = !searchQuery ||
+      f.name.toLowerCase().includes(searchQuery) ||
+      f.region.toLowerCase().includes(searchQuery) ||
+      f.countryName.toLowerCase().includes(searchQuery) ||
+      f.tags.some(t => t.toLowerCase().includes(searchQuery));
+    return matchCountry && matchSearch;
+  });
+
+  // Sort
+  filtered.sort((a, b) => {
+    switch(activeSort) {
+      case 'difficulty-desc': return b.diffNum - a.diffNum;
+      case 'difficulty-asc': return a.diffNum - b.diffNum;
+      case 'elevation-desc': return b.elevation - a.elevation;
+      case 'length-desc': return b.length - a.length;
+      case 'name': return a.name.localeCompare(b.name, 'cs');
+      default: return 0;
+    }
+  });
+
+  renderFeed(filtered);
+}
+
+// RENDER
+function renderFeed(ferraty) {
+  const feed = document.getElementById('feed');
+  const count = document.getElementById('resultsCount');
+  count.innerHTML = `<span>${ferraty.length}</span> ferrat`;
+
+  if (ferraty.length === 0) {
+    feed.innerHTML = `<div class="empty-state"><div class="icon">🧗</div><p>Žádné ferraty neodpovídají filtru.</p></div>`;
+    return;
+  }
+
+  feed.innerHTML = ferraty.map((f, i) => {
+    const diffKey = f.diff.replace('/', '');
+    const isOpen = openCard === f.id;
+    return `
+    <div class="ferrata-card ${isOpen ? 'open' : ''}" id="card-${f.id}" style="animation-delay:${i * 0.04}s" onclick="toggleCard(${f.id})">
+      <div class="diff-stripe stripe-${diffKey}"></div>
+      <div class="card-main">
+        <div class="card-top">
+          <div class="card-left">
+            <div class="card-name">${f.name}</div>
+            <div class="card-location">📍 ${f.region}</div>
+          </div>
+          <div class="diff-badge diff-${diffKey}">${f.diffLabel}</div>
+        </div>
+        <div class="params-row">
+          <div class="param"><div class="param-label">Převýšení</div><div class="param-value">${f.elevation} m</div></div>
+          <div class="param"><div class="param-label">Délka</div><div class="param-value">${f.length < 1000 ? f.length + ' m' : (f.length/1000).toFixed(1) + ' km'}</div></div>
+          <div class="param"><div class="param-label">Čas</div><div class="param-value">${f.time}</div></div>
+          <div class="param"><div class="param-label">Nadm. výška</div><div class="param-value">${f.altitude} m</div></div>
+        </div>
+        <div class="tags-row">
+          <span class="tag tag-country">${f.countryName}</span>
+          <span class="tag tag-season">🗓 ${f.season}</span>
+          ${f.tags.slice(0,2).map(t => `<span class="tag tag-feature">${t}</span>`).join('')}
+        </div>
+      </div>
+      <div class="card-expand">
+        <div class="card-desc-preview">${f.desc.substring(0,60)}…</div>
+        <div class="expand-icon">▾</div>
+      </div>
+      <div class="card-detail">
+        <div class="detail-inner">
+          <div class="detail-desc">${f.desc}</div>
+          <div class="detail-grid">
+            <div class="detail-item"><div class="detail-item-label">Sezóna</div><div class="detail-item-value">${f.season}</div></div>
+            <div class="detail-item"><div class="detail-item-label">GPS</div><div class="detail-item-value" style="font-size:12px">${f.gps}</div></div>
+            <div class="detail-item"><div class="detail-item-label">Obtížnost</div><div class="detail-item-value">${f.diffLabel}</div></div>
+            <div class="detail-item"><div class="detail-item-label">Země</div><div class="detail-item-value">${f.countryName}</div></div>
+          </div>
+          <div class="tip-box">💡 <strong>Tip:</strong> ${f.tip}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(id) {
+  if (openCard === id) {
+    openCard = null;
+  } else {
+    openCard = id;
+  }
+  // Re-render without losing scroll position
+  const scrollY = window.scrollY;
+  applyFilters();
+  window.scrollTo(0, scrollY);
+}
+
+init();
+</script>
+</body>
+</html>
