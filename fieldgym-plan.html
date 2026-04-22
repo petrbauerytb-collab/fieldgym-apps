@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Field Gym Plán">
+<title>Plán tréninku zad – Field Gym</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent: #18b0ba;
+  --accent-hover: #12d4e0;
+  --dark: #0d2426;
+  --dark2: #0a3a3d;
+  --text: #0d1f21;
+  --muted: #2e5055;
+  --bg: #ffffff;
+  --bg2: #f4f8f8;
+  --border: #d0e8ea;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Lato', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ===== HEADER ===== */
+.header {
+  background: linear-gradient(135deg, var(--dark) 0%, var(--dark2) 100%);
+  padding: 28px 20px 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--accent);
+}
+
+.header-logo {
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.header-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.15;
+  letter-spacing: 0.5px;
+}
+
+.header-sub {
+  font-family: 'Lato', sans-serif;
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+  margin-top: 6px;
+  font-weight: 300;
+}
+
+/* ===== SCREENS ===== */
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ===== GOAL SCREEN ===== */
+.goal-section {
+  padding: 28px 20px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.section-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 14px;
+}
+
+.goal-intro {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.goal-intro strong { color: var(--text); }
+
+.goal-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.goal-card {
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--bg2);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.goal-card:active { transform: scale(0.98); }
+
+.goal-card.selected {
+  border-color: var(--accent);
+  background: rgba(24,176,186,0.07);
+}
+
+.goal-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.goal-text {}
+
+.goal-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.goal-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.goal-card.selected .goal-name { color: var(--accent); }
+
+.btn-primary {
+  width: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  color: #fff;
+  font-family: 'Oswald', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  border: none;
+  border-radius: 10px;
+  padding: 16px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  text-transform: uppercase;
+}
+
+.btn-primary:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btn-primary:not(:disabled):active { opacity: 0.85; }
+
+/* ===== PLAN SCREEN ===== */
+.plan-section {
+  padding: 0 0 40px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* GOAL BANNER */
+.goal-banner {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.goal-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.goal-banner-icon { font-size: 22px; }
+
+.goal-banner-text {
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.goal-banner-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.btn-change {
+  font-family: 'Lato', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  flex-shrink: 0;
+}
+
+/* INTRO BLOCK */
+.plan-intro {
+  padding: 20px 20px 0;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  border-left: 3px solid var(--accent);
+  margin: 20px 20px 0;
+  padding: 12px 16px;
+  background: rgba(24,176,186,0.05);
+  border-radius: 0 8px 8px 0;
+}
+
+/* WARMUP */
+.warmup-block {
+  margin: 24px 20px 0;
+}
+
+.block-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.warmup-card {
+  background: var(--dark);
+  border-radius: 12px;
+  padding: 18px 16px;
+  color: #fff;
+}
+
+.warmup-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #fff;
+}
+
+.warmup-desc {
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.warmup-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(24,176,186,0.2);
+  color: var(--accent);
+  border: 1px solid rgba(24,176,186,0.3);
+}
+
+/* EXERCISE CARDS */
+.exercises-block {
+  margin: 24px 20px 0;
+}
+
+.exercise-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  background: var(--bg);
+  transition: box-shadow 0.2s;
+}
+
+.exercise-card.done {
+  opacity: 0.55;
+}
+
+.ex-photo {
+  width: 100%;
+  height: 160px;
+  background: var(--bg2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.ex-photo-placeholder {
+  text-align: center;
+}
+
+.ex-photo-icon { font-size: 48px; opacity: 0.25; }
+.ex-photo-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 6px;
+  opacity: 0.6;
+}
+
+.ex-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ex-num {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  background: var(--accent);
+  color: #fff;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.ex-body {
+  padding: 16px;
+}
+
+.ex-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.ex-target {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  font-family: 'Oswald', sans-serif;
+}
+
+.ex-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.65;
+  margin-bottom: 14px;
+}
+
+.ex-params {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.ex-param {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.ex-param span {
+  display: block;
+  font-family: 'Lato', sans-serif;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 1px;
+}
+
+.ex-rule {
+  background: rgba(24,176,186,0.06);
+  border-left: 3px solid var(--accent);
+  padding: 10px 12px;
+  border-radius: 0 8px 8px 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.ex-rule strong { color: var(--text); }
+
+.btn-done {
+  width: 100%;
+  border: 2px solid var(--border);
+  background: var(--bg2);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-done.checked {
+  border-color: #2dce89;
+  background: rgba(45,206,137,0.08);
+  color: #1a9965;
+}
+
+/* DIVIDER */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 28px 20px;
+}
+
+/* CTA BLOCK */
+.cta-block {
+  margin: 0 20px;
+  background: linear-gradient(135deg, var(--dark) 0%, var(--dark2) 100%);
+  border-radius: 14px;
+  padding: 24px 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-block::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--accent);
+}
+
+.cta-label {
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.cta-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.cta-text {
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+
+.btn-cta {
+  width: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  color: #fff;
+  font-family: 'Oswald', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  border: none;
+  border-radius: 10px;
+  padding: 15px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+/* PROGRESS BAR */
+.progress-wrap {
+  padding: 16px 20px 0;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.progress-label span { color: var(--accent); }
+
+.progress-track {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  padding: 24px 20px;
+  font-size: 12px;
+  color: #aaa;
+  font-family: 'Oswald', sans-serif;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 100;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.modal-overlay.active { display: flex; }
+
+.modal {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px 40px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.modal-handle {
+  width: 40px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+
+.modal-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.modal-target {
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  color: var(--accent);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.modal-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.modal-tip {
+  background: var(--bg2);
+  border-left: 3px solid var(--accent);
+  padding: 12px 14px;
+  border-radius: 0 8px 8px 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.modal-close {
+  width: 100%;
+  background: var(--bg2);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+/* Transitions */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.screen.active { animation: fadeIn 0.3s ease; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">Field Gym · České Budějovice</div>
+  <div class="header-title">Plán tréninku zad</div>
+  <div class="header-sub">6 cviků sestavených podle tvého cíle</div>
+</div>
+
+<!-- ===== SCREEN: GOAL ===== -->
+<div class="screen active" id="s-goal">
+  <div class="goal-section">
+    <div class="section-label">Krok 1 — Tvůj cíl</div>
+    <p class="goal-intro">
+      Každý trénink zad by měl mít <strong>jasný záměr</strong>. Vyber, co teď potřebuješ nejvíc — a my ti sestavíme plán přesně na míru.
+    </p>
+
+    <div class="goal-cards">
+
+      <div class="goal-card" data-goal="bolest" onclick="selectGoal(this)">
+        <div class="goal-icon">🔥</div>
+        <div class="goal-text">
+          <div class="goal-name">Zbavit se bolesti zad</div>
+          <div class="goal-desc">Bolest nebo nepohodlí v bedrech, bederní páteři nebo horní části zad. Chceš se pohybovat bez strachu a bolesti.</div>
+        </div>
+      </div>
+
+      <div class="goal-card" data-goal="mobilita" onclick="selectGoal(this)">
+        <div class="goal-icon">🌀</div>
+        <div class="goal-text">
+          <div class="goal-name">Zlepšit mobilitu páteře</div>
+          <div class="goal-desc">Cítíš tuhost, omezený rozsah nebo asymetrii. Chceš pohybovat páteří ve všech rovinách plynule a bez omezení.</div>
+        </div>
+      </div>
+
+      <div class="goal-card" data-goal="sila" onclick="selectGoal(this)">
+        <div class="goal-icon">💪</div>
+        <div class="goal-text">
+          <div class="goal-name">Posílit záda a core</div>
+          <div class="goal-desc">Záda pracují, ale chceš je systematicky posílit. Silnější záda, lepší postura, méně kompenzací.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <button class="btn-primary" id="btnContinue" disabled onclick="showPlan()">
+      Sestavit plán →
+    </button>
+  </div>
+</div>
+
+<!-- ===== SCREEN: PLAN ===== -->
+<div class="screen" id="s-plan">
+
+  <!-- GOAL BANNER -->
+  <div class="goal-banner">
+    <div class="goal-banner-left">
+      <div class="goal-banner-icon" id="bannerIcon">🔥</div>
+      <div>
+        <div class="goal-banner-text" id="bannerText">Zbavit se bolesti</div>
+        <div class="goal-banner-sub">Tvůj dnešní plán — 6 cviků</div>
+      </div>
+    </div>
+    <button class="btn-change" onclick="changeGoal()">Změnit cíl</button>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap">
+    <div class="progress-label">
+      Splněno <span id="progressText">0 / 6</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="plan-section">
+
+    <!-- INTRO TEXT -->
+    <div class="plan-intro" id="planIntro"></div>
+
+    <!-- WARMUP -->
+    <div class="warmup-block">
+      <div class="block-title">Rozcvičení páteře</div>
+      <div class="warmup-card">
+        <div class="warmup-name">CAR + Medicimbal</div>
+        <div class="warmup-desc">
+          Kontrolované artikulární rotace (CAR) páteře — vědomé krouživé pohyby v každém segmentu. Navazuje objetí medicimbalu na hrudi pro přidaný odpor a proprioceptivní feedback.
+        </div>
+        <div class="warmup-tags">
+          <div class="tag">2–3 min</div>
+          <div class="tag">Pomalé tempo</div>
+          <div class="tag">Všechny roviny</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXERCISES -->
+    <div class="exercises-block" id="exercisesBlock"></div>
+
+    <div class="divider"></div>
+
+    <!-- CTA -->
+    <div class="cta-block">
+      <div class="cta-label">Chceš individuální přístup?</div>
+      <div class="cta-title">Zjisti, co přesně potřebují tvoje záda</div>
+      <div class="cta-text">
+        Bezplatná diagnostika mobility ve Field Gym. Zaregistruj se a my ti pošleme možné termíny.
+      </div>
+      <button class="btn-cta" onclick="window.open('https://ebook.fieldgym.cz/#diagnostika', '_blank')">
+        Zaregistrovat se zdarma →
+      </button>
+    </div>
+
+  </div>
+
+  <div class="footer">Field Gym · fieldgym.cz</div>
+
+</div>
+
+<!-- MODAL: detail cviku -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-target" id="modalTarget"></div>
+    <div class="modal-desc" id="modalDesc"></div>
+    <div class="modal-tip" id="modalTip"></div>
+    <button class="modal-close" onclick="document.getElementById('modal').classList.remove('active')">
+      Zavřít
+    </button>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+const PLANS = {
+  bolest: {
+    icon: '🔥',
+    name: 'Zbavit se bolesti zad',
+    intro: 'Bolest zad vzniká nejčastěji z nedostatku pohybu — nikoliv z přetížení. Dnešní trénink tě provede řízeným pohybem páteře ve všech rovinách. Začni pomalu, vnímej tělo a nesnaž se překonávat rozsah silou.',
+    exercises: [
+      {
+        id: 'jefferson',
+        num: '01',
+        name: 'Jefferson Curl',
+        target: 'Dekomprese páteře · Flexe',
+        desc: 'Stoj na vyvýšené ploše (step, kotouč). Pomalu roluj páteř od hlavy dolů — obratle po obratli — dokud se prsty nedotknou země nebo co nejníže. Drž 2–3 sekundy dole, pak se pomalu vracíš.',
+        sets: '3 série',
+        reps: '5 opakování',
+        load: 'Bez záteže nebo tyč',
+        rule: '<strong>Klíč:</strong> Pohyb musí být vědomý a segmentovaný — ne jen předklon. Každý obratel zvlášť.',
+        tip: 'Pokud cítíš bolest vyzařující do nohy, zastav a pracuj v rozsahu bez bolesti. Neutrální páteř není cíl — volný pohyb je.'
+      },
+      {
+        id: 'zercher',
+        num: '02',
+        name: 'Zercher Deadlift',
+        target: 'Bederní páteř · Posteriorní řetězec',
+        desc: 'Činku nebo medicimbal uchop do záhybů loktů (Zercher grip). Z dřepu se vzpřim — záda se přirozeně zakulatí. Cílem není rovná záda, ale vědomá kontrola flexe pod zátěží.',
+        sets: '3 série',
+        reps: '6–8 opakování',
+        load: 'Lehká záteže',
+        rule: '<strong>Klíč:</strong> Dovolíš páteři se ohýbat — ale vědomě a pod kontrolou. Toto je trénink bezpečného pohybu zad se záteží.',
+        tip: 'Právě tento cvik narušuje mýtus „rovných zad". Páteř je stavěna k pohybu — i pod zátěží, pokud je postupná a vědomá.'
+      },
+      {
+        id: 'rotace',
+        num: '03',
+        name: 'Rotace s expandérem / kladkou',
+        target: 'Rotátory páteře · Hrudní páteř',
+        desc: 'Medicimbal nebo expandér drž před sebou. Rotuj od hrudní páteře — ne od boků. Pohyb jde z thoracální oblasti, bedra zůstávají relativně stabilní.',
+        sets: '3 série',
+        reps: '8 každou stranu',
+        load: 'Lehký expandér',
+        rule: '<strong>Klíč:</strong> Rotace od hrudníku, ne od ramen. Bedra pouze doprovázejí.',
+        tip: 'Hrudní páteř je nejdůležitější rotační segment. Většina lidí s bolestí zad má omezenou th-páteř a kompenzuje bederní páteří.'
+      },
+      {
+        id: 'lateroflexe',
+        num: '04',
+        name: 'Lateroflexe na GHD',
+        target: 'Quadratus lumborum · Boční stabilizátory',
+        desc: 'Na GHD lavici v bočním uložení. Pomalu kleseš do strany — páteř se boční flexí prodlužuje. Pak se vrátíš do neutrální polohy. Cítíš protažení na konci pohybu.',
+        sets: '3 série',
+        reps: '8 každou stranu',
+        load: 'Vlastní váha',
+        rule: '<strong>Klíč:</strong> Pohyb čistě do strany — bez rotace nebo předklonu. Drž záhlavní svalstvo uvolněné.',
+        tip: 'Lateroflexe trénuje quadratus lumborum — jeden z nejpodceňovanějších svalů při chronické bolesti zad.'
+      },
+      {
+        id: 'flexe-ghd',
+        num: '05',
+        name: 'Flexe trupu na GHD',
+        target: 'Flexory páteře · Přímý sval břišní',
+        desc: 'Na GHD lavici v čelním uložení. Pomalu kleseš dolů do extenze, pak se vědomě rolí páteře vrátíš zpět. Pohyb začíná od pánve, ne od ramen.',
+        sets: '3 série',
+        reps: '6–8 opakování',
+        load: 'Vlastní váha',
+        rule: '<strong>Klíč:</strong> Pomalé tempo dolů (3–4s), kontrolované nahoru. Nepoužívej setrvačnost.',
+        tip: 'Flexe páteře je přirozený pohyb — tréninkem ji nejen posilíme, ale odstraníme i strach z ní, který bolest udržuje.'
+      },
+    ]
+  },
+  mobilita: {
+    icon: '🌀',
+    name: 'Zlepšit mobilitu páteře',
+    intro: 'Mobilita páteře není o protahování — je o vědomém ovládání pohybu v každém segmentu. Dnešní trénink tě provede všemi rovinami pohybu páteře. Pracuj pomalu, s plným soustředěním na kvalitu pohybu.',
+    exercises: [
+      {
+        id: 'jefferson',
+        num: '01',
+        name: 'Jefferson Curl',
+        target: 'Sagitální rovina · Flexe páteře',
+        desc: 'Stoj na vyvýšené ploše. Pomalu segmentovaně roluj páteř dolů — každý obratel zvlášť. Cílem je vědomá flexe každého segmentu, ne jen předklon.',
+        sets: '3 série',
+        reps: '5–6 opakování',
+        load: 'Tyč nebo lehká záteže',
+        rule: '<strong>Klíč:</strong> Pomalé tempo (5–6s dolů). Na dně se zastav a vnímej kde je pohyb omezený.',
+        tip: 'Dej si čas — Jefferson Curl je diagnostický nástroj. Kde se pohyb zastaví, je tvoje omezení.'
+      },
+      {
+        id: 'rotace',
+        num: '02',
+        name: 'Rotace s medicimbalem / expandérem',
+        target: 'Transverzální rovina · Rotace Th-páteře',
+        desc: 'V postoji nebo sedu. Medicimbal drž před hrudníkem. Rotuj od hrudní páteře vědomě do krajní polohy — drž 2s — vrať se. Bedra jsou relativně stabilní.',
+        sets: '4 série',
+        reps: '10 každou stranu',
+        load: 'Medicimbal 2–4 kg',
+        rule: '<strong>Klíč:</strong> Pohyb z th-páteře, ne ze ramen. Aktivuj serratus pro lepší rotaci.',
+        tip: 'Hrudní páteř má největší rotační potenciál ze všech segmentů. Procvič ji a uvolní se i krk i bedra.'
+      },
+      {
+        id: 'lateroflexe',
+        num: '03',
+        name: 'Lateroflexe na GHD',
+        target: 'Frontální rovina · Boční flexe',
+        desc: 'Na GHD v bočním uložení. Vědomě klesáš do strany — prodlužuješ laterální linii. Na dně se zastaví a vnímáš omezení. Vrátíš se kontrolovaně.',
+        sets: '3 série',
+        reps: '8 každou stranu',
+        load: 'Vlastní váha nebo záteže na hrudi',
+        rule: '<strong>Klíč:</strong> Srovnej asymetrie — na jednu stranu půjde lépe. Na tužší věnuj extra čas.',
+        tip: 'Boční flexe je nejčastěji opomíjená rovina. Asymetrie v lateroflexi je přímá příčina bolesti a kompenzací.'
+      },
+      {
+        id: 'flexe-ghd',
+        num: '04',
+        name: 'Flexe trupu na GHD',
+        target: 'Sagitální rovina · Aktivní flexe',
+        desc: 'Na GHD čelně. Kontrolovaně kleseš do extenze — plné prodloužení páteře. Pak rolí zpět. Trénuješ aktivní rozsah — ne jen pasivní flexibilitu.',
+        sets: '3 série',
+        reps: '6–8 opakování',
+        load: 'Vlastní váha',
+        rule: '<strong>Klíč:</strong> Aktivní pohyb — svaly pracují v celém rozsahu, ne jen gravitace dolů.',
+        tip: 'Aktivní flexibilita je víc než pasivní protahování — svaly se učí pracovat v nových polohách.'
+      },
+      {
+        id: 'zercher',
+        num: '05',
+        name: 'Zercher Deadlift',
+        target: 'Integrace mobility a stability',
+        desc: 'Zercher grip — záteže v záhybech loktů. Při pohybu nahoru procházíš různými stupni flexe páteře. Tréníš vědomou kontrolu pohybu páteře pod zátěží.',
+        sets: '3 série',
+        reps: '6 opakování',
+        load: 'Střední záteže',
+        rule: '<strong>Klíč:</strong> Vnímej přechody — kde páteř mění křivku při pohybu. Nezrychluj.',
+        tip: 'Zercher deadlift je ideální pro trénink mobility pod zátěží — záteže vyžaduje kontrolu, ne jen flexi.'
+      },
+    ]
+  },
+  sila: {
+    icon: '💪',
+    name: 'Posílit záda a core',
+    intro: 'Silná záda nejsou tuhá záda — jsou to záda, která se pohybují vědomě a ovládají pohyb pod zátěží. Dnešní trénink buduje sílu ve fyziologickém rozsahu pohybu páteře. Progresivní záteže, kontrolované tempo.',
+    exercises: [
+      {
+        id: 'zercher',
+        num: '01',
+        name: 'Zercher Deadlift',
+        target: 'Posteriorní řetězec · Bederní síla',
+        desc: 'Primární silový cvik. Záteže v záhybech loktů — Zercher grip. Drep do páky, plná extenze nahoře. Záteže progresivně přidávej každý trénink.',
+        sets: '4 série',
+        reps: '5–6 opakování',
+        load: 'Těžší záteže — RPE 8',
+        rule: '<strong>Klíč:</strong> Napnutí celého těla před pohybem — záda, core, hýždě. Dýchání: nádech dole, výdech nahoře.',
+        tip: 'Zercher deadlift buduje unikátní sílu — zapojuje přední i zadní řetězec zároveň. Ideální pro zdravá a silná záda.'
+      },
+      {
+        id: 'jefferson',
+        num: '02',
+        name: 'Jefferson Curl',
+        target: 'Silová flexe páteře · Hamstringy',
+        desc: 'Se záteží (kettlebell, činky). Segmentovaná flexe dolů, kontrolovaná extenze zpět. Trénuješ sílu flexorů páteře v plném rozsahu — to, co se běžně netrénuje.',
+        sets: '4 série',
+        reps: '5 opakování',
+        load: 'Střední záteže — KBell 16–24 kg',
+        rule: '<strong>Klíč:</strong> Záteže zvyšuj postupně — nejdřív zvládni pohyb, pak přidávej kilogramy.',
+        tip: 'Jefferson Curl je jeden z nejlepších cviků pro prevenci hernie disku — trénuje flexory páteře přímo a vědomě.'
+      },
+      {
+        id: 'flexe-ghd',
+        num: '03',
+        name: 'Flexe trupu na GHD',
+        target: 'Přímý sval břišní · Flexory páteře',
+        desc: 'Na GHD čelně se záteží na hrudi nebo za hlavou. Plná extenze dolů — plná flexe zpět. Jeden z nejsilnějších stimulů pro přímý sval břišní.',
+        sets: '4 série',
+        reps: '8–10 opakování',
+        load: 'Záteže na hrudi 5–10 kg',
+        rule: '<strong>Klíč:</strong> Pomalé negativní tempo (3–4s dolů). Nevyhýbej se plné extenzi — to je kde se síla buduje.',
+        tip: 'GHD sit-up je nadřazený klasickým zkratkám — plný rozsah pohybu buduje funkční sílu core.'
+      },
+      {
+        id: 'lateroflexe',
+        num: '04',
+        name: 'Lateroflexe na GHD',
+        target: 'Laterální řetězec · Quadratus lumborum',
+        desc: 'Na GHD bočně se záteží na hrudi. Plný rozsah do strany — bez rotace. Silový stimulus pro boční stabilizátory páteře.',
+        sets: '3 série',
+        reps: '8–10 každou stranu',
+        load: 'Záteže 5–10 kg',
+        rule: '<strong>Klíč:</strong> Symetrie je cíl — srovnávej slabší stranu se silnější. Nepřeskakuj ji.',
+        tip: 'Silný QL je základ zdravé páteře. Nedostatečně trénovaný QL je příčina většiny chronických bolestí zad.'
+      },
+      {
+        id: 'rotace',
+        num: '05',
+        name: 'Rotace s kladkou / expandérem',
+        target: 'Rotační síla · Transverzální řetězec',
+        desc: 'Na kladce nebo těžším expandéru. Rotace od Th-páteře s vědomým odporem. Pomalé tempo — 2s do rotace, 3s zpět.',
+        sets: '4 série',
+        reps: '10 každou stranu',
+        load: 'Střední odpor kladky',
+        rule: '<strong>Klíč:</strong> Pohyb z hrudní páteře — ne ramena, ne boky. Celý core je napnutý.',
+        tip: 'Rotační síla je přehlížená složka výkonu. Buduje ji vědomý trénink rotace, ne jen planky.'
+      },
+    ]
+  }
+};
+
+// ===== STATE =====
+let selectedGoal = null;
+let checkedExercises = new Set();
+
+// ===== GOAL SELECTION =====
+function selectGoal(el) {
+  document.querySelectorAll('.goal-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedGoal = el.dataset.goal;
+  document.getElementById('btnContinue').disabled = false;
+}
+
+function changeGoal() {
+  checkedExercises.clear();
+  document.getElementById('s-plan').classList.remove('active');
+  document.getElementById('s-goal').classList.add('active');
+}
+
+// ===== SHOW PLAN =====
+function showPlan() {
+  if (!selectedGoal) return;
+
+  const plan = PLANS[selectedGoal];
+
+  // Banner
+  document.getElementById('bannerIcon').textContent = plan.icon;
+  document.getElementById('bannerText').textContent = plan.name;
+
+  // Intro
+  document.getElementById('planIntro').textContent = plan.intro;
+
+  // Render exercises
+  renderExercises(plan);
+
+  // Switch screen
+  document.getElementById('s-goal').classList.remove('active');
+  document.getElementById('s-plan').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function renderExercises(plan) {
+  const block = document.getElementById('exercisesBlock');
+  block.innerHTML = '';
+
+  plan.exercises.forEach((ex, i) => {
+    const isDone = checkedExercises.has(ex.id);
+    const card = document.createElement('div');
+    card.className = `exercise-card${isDone ? ' done' : ''}`;
+    card.id = `ex-${ex.id}`;
+
+    card.innerHTML = `
+      <div class="ex-photo">
+        <div class="ex-photo-placeholder">
+          <div class="ex-photo-icon">🏋️</div>
+          <div class="ex-photo-label">Fotka cviku</div>
+        </div>
+        <div class="ex-num">Cvik ${ex.num}</div>
+      </div>
+      <div class="ex-body">
+        <div class="ex-name">${ex.name}</div>
+        <div class="ex-target">${ex.target}</div>
+        <div class="ex-desc">${ex.desc}</div>
+        <div class="ex-params">
+          <div class="ex-param"><span>Série</span>${ex.sets}</div>
+          <div class="ex-param"><span>Opakování</span>${ex.reps}</div>
+          <div class="ex-param"><span>Záteže</span>${ex.load}</div>
+        </div>
+        <div class="ex-rule">${ex.rule}</div>
+        <button class="btn-done ${isDone ? 'checked' : ''}" onclick="toggleDone('${ex.id}')">
+          ${isDone ? '✓ Hotovo' : 'Označit jako splněné'}
+        </button>
+      </div>
+    `;
+
+    // Kliknutí na fotku/jméno = modal
+    card.querySelector('.ex-photo').addEventListener('click', () => openModal(ex));
+    card.querySelector('.ex-name').addEventListener('click', () => openModal(ex));
+
+    block.appendChild(card);
+  });
+
+  updateProgress();
+}
+
+// ===== DONE TOGGLE =====
+function toggleDone(id) {
+  if (checkedExercises.has(id)) {
+    checkedExercises.delete(id);
+  } else {
+    checkedExercises.add(id);
+  }
+
+  const card = document.getElementById(`ex-${id}`);
+  card.classList.toggle('done', checkedExercises.has(id));
+  const btn = card.querySelector('.btn-done');
+  btn.classList.toggle('checked', checkedExercises.has(id));
+  btn.textContent = checkedExercises.has(id) ? '✓ Hotovo' : 'Označit jako splněné';
+
+  updateProgress();
+}
+
+// ===== PROGRESS =====
+function updateProgress() {
+  const total = PLANS[selectedGoal].exercises.length;
+  const done = checkedExercises.size;
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${done} / ${total}`;
+}
+
+// ===== MODAL =====
+function openModal(ex) {
+  document.getElementById('modalTitle').textContent = ex.name;
+  document.getElementById('modalTarget').textContent = ex.target;
+  document.getElementById('modalDesc').textContent = ex.desc;
+  document.getElementById('modalTip').innerHTML = '💡 ' + ex.tip;
+  document.getElementById('modal').classList.add('active');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal')) {
+    document.getElementById('modal').classList.remove('active');
+  }
+}
+</script>
+
+</body>
+</html>
