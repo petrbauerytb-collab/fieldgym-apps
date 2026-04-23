@@ -262,6 +262,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 .manual-sub{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:28px}
 .btn-hold{background:var(--green);color:#000;border:none;border-radius:50%;width:110px;height:110px;font-family:'Bebas Neue',sans-serif;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.2;box-shadow:0 0 30px rgba(0,230,118,.4);transition:all .2s}
 .btn-hold.holding{background:var(--red);box-shadow:0 0 30px rgba(255,23,68,.4)}
+
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -349,44 +351,97 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);hei
 
 <!-- ===== DIAGNOSTIKA ===== -->
 <div class="screen" id="s-diag">
-  <div class="hdr">
-    <div class="hdr-title">DIAGNOSTIKA <span>POSTURY</span></div>
-    <div class="hdr-sub" id="diag-sub">Analýza omezení → personalizovaný warm-up</div>
-  </div>
-  <div class="pad">
 
-    <!-- Scan card -->
-    <div class="scan-card" id="scan-card">
-      <div class="scan-subtitle">Posturální sken</div>
-      <div class="scan-title">Zjisti svá omezení</div>
-      <div class="scan-desc">Postav se do základního stoje před kameru. Appka za 5 sekund analyzuje tvoje ramena, kyčle, kotníky a postaví ti personalizovaný warm-up.</div>
-      <button class="btn-primary" onclick="startDiagScan()">🔍 Spustit diagnostiku</button>
+  <!-- STATE A: Zadny sken -->
+  <div id="diag-empty">
+    <div class="hdr">
+      <div class="hdr-title">DIAGNOSTIKA <span>POSTURY</span></div>
+      <div class="hdr-sub">Analýza omezení → personalizovaný warm-up</div>
     </div>
-
-    <!-- Skeleton preview (hidden until scan done) -->
-    <div id="skel-section" style="display:none">
-      <div class="sec-label">Výsledek skenu</div>
-      <div class="skeleton-preview">
-        <canvas id="diag-canvas"></canvas>
-        <div class="skel-label">Body scan ✓</div>
+    <div class="pad">
+      <div class="scan-card">
+        <div class="scan-subtitle">Posturální sken</div>
+        <div class="scan-title">Zjisti svá omezení</div>
+        <div class="scan-desc">Postav se do stoje před kameru. Za 5 sekund analyzuji ramena, kyčle, kotníky a sestavím ti warm-up přímo pro tebe.</div>
+        <button class="btn-primary" onclick="startDiagScan()">🔍 Spustit diagnostiku</button>
+      </div>
+      <div style="margin-top:16px">
+        <div class="sec-label">Co se měří</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px"><div style="font-size:22px">💪</div><div><div style="font-size:13px;font-weight:600">Overhead mobilita</div><div style="font-size:11px;color:var(--muted)">Jak daleko jdou ruce za uši</div></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px"><div style="font-size:22px">🏋️</div><div><div style="font-size:13px;font-weight:600">Asymetrie ramen</div><div style="font-size:11px;color:var(--muted)">Jedno rameno výš než druhé?</div></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px"><div style="font-size:22px">🦴</div><div><div style="font-size:13px;font-weight:600">Pelvický tilt</div><div style="font-size:11px;color:var(--muted)">Prohnutá bedra = banana back ve stojce</div></div></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px"><div style="font-size:22px">📐</div><div><div style="font-size:13px;font-weight:600">Laterální linie</div><div style="font-size:11px;color:var(--muted)">Core symetrie a stabilita</div></div></div>
+        </div>
       </div>
     </div>
-
-    <!-- Diagnostic results (hidden until scan done) -->
-    <div id="diag-results-section" style="display:none">
-      <div class="sec-label">Analýza pohyblivosti</div>
-      <div class="diag-results" id="diag-results"></div>
-    </div>
-
-    <!-- Warmup plan -->
-    <div id="warmup-section" style="display:none">
-      <div class="sec-label" style="margin-top:4px">Personalizovaný warm-up</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5" id="warmup-intro"></div>
-      <div id="warmup-list" style="display:flex;flex-direction:column;gap:8px"></div>
-      <button class="btn-primary" style="margin-top:12px" onclick="startDiagScan()">🔄 Nový sken</button>
-    </div>
-
   </div>
+
+  <!-- STATE B: Report po skenu -->
+  <div id="diag-report" style="display:none">
+    <div class="hdr" style="border-bottom:none;padding-bottom:0">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div class="hdr-title">REPORT <span>POSTURY</span></div>
+          <div class="hdr-sub" id="report-date">—</div>
+        </div>
+        <button onclick="startDiagScan()" style="background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.25);border-radius:10px;padding:8px 14px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);cursor:pointer;letter-spacing:1px;text-transform:uppercase;flex-shrink:0">🔄 Nový sken</button>
+      </div>
+    </div>
+    <div class="pad" style="padding-top:12px">
+      <!-- OVERALL SCORE -->
+      <div style="background:linear-gradient(135deg,#0a1628,#0d2040);border:1px solid rgba(0,229,255,.2);border-radius:18px;padding:18px;margin-bottom:16px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-30px;right:-30px;width:140px;height:140px;background:radial-gradient(circle,rgba(0,229,255,.07),transparent 70%);pointer-events:none"></div>
+        <div style="text-align:center;flex-shrink:0">
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:64px;line-height:1" id="overall-num">—</div>
+          <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)">/100</div>
+        </div>
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:4px">Celkové skóre</div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px" id="overall-label">—</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px;line-height:1.4" id="overall-desc">—</div>
+        </div>
+      </div>
+      <!-- SKELETON -->
+      <div class="sec-label">Výkres těla</div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;position:relative">
+        <canvas id="diag-canvas" style="width:100%;display:block"></canvas>
+        <div style="position:absolute;top:10px;left:10px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);background:rgba(0,0,0,.75);padding:4px 10px;border-radius:6px">Body scan ✓</div>
+        <div style="position:absolute;bottom:10px;left:10px;display:flex;flex-direction:column;gap:4px">
+          <div style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.75);padding:3px 8px;border-radius:6px"><div style="width:8px;height:8px;border-radius:50%;background:#00e5ff"></div><span style="font-size:9px;color:rgba(255,255,255,.7);font-family:'DM Mono',monospace">Ramena / Záp.</span></div>
+          <div style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.75);padding:3px 8px;border-radius:6px"><div style="width:8px;height:8px;border-radius:50%;background:#ff6b35"></div><span style="font-size:9px;color:rgba(255,255,255,.7);font-family:'DM Mono',monospace">Kyčle</span></div>
+          <div style="display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.75);padding:3px 8px;border-radius:6px"><div style="width:8px;height:8px;border-radius:50%;background:#d500f9"></div><span style="font-size:9px;color:rgba(255,255,255,.7);font-family:'DM Mono',monospace">Kotníky</span></div>
+        </div>
+      </div>
+      <!-- RESULTS -->
+      <div class="sec-label">Analýza pohyblivosti</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px" id="diag-results"></div>
+      <div style="height:1px;background:var(--border);margin:4px 0 16px"></div>
+      <!-- WARMUP -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div class="sec-label" style="margin-bottom:0">Personalizovaný warm-up</div>
+        <div id="warmup-progress-label" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">0 / 0</div>
+      </div>
+      <div style="height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:12px"><div id="warmup-progress-bar" style="height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:2px;width:0%;transition:width .5s ease"></div></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:10px" id="warmup-intro"></div>
+      <div id="warmup-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      <div style="height:20px"></div>
+    </div>
+  </div>
+
+  <!-- SCANNING OVERLAY -->
+  <div id="diag-scanning" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:300;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;padding:40px">
+    <div style="font-size:64px;animation:spin 2s linear infinite">🔍</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px">Skenuji posturu</div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.6;max-width:260px">Stůj rovně, paže podél těla. Analyzuji ramena, kyčle a celkovou linii těla...</div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <div id="scan-dot-1" style="width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .3s"></div>
+      <div id="scan-dot-2" style="width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .3s"></div>
+      <div id="scan-dot-3" style="width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .3s"></div>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:28px;color:var(--accent)" id="scan-countdown-num">5</div>
+  </div>
+
 </div>
 
 <!-- ===== PROGRESS ===== -->
@@ -915,31 +970,63 @@ let diagLandmarks = null;
 let diagScanActive = false;
 
 async function startDiagScan() {
+  // Switch to diag tab first
+  showScr('s-diag');
+  // Show scanning overlay
+  const scanOv = document.getElementById('diag-scanning');
+  scanOv.style.display = 'flex';
+  document.getElementById('diag-empty').style.display = 'none';
+  document.getElementById('diag-report').style.display = 'none';
+
+  // Animated dots
+  const dots = ['scan-dot-1','scan-dot-2','scan-dot-3'];
+  let dotIdx = 0;
+  const dotInt = setInterval(() => {
+    dots.forEach((d,i) => document.getElementById(d).style.background = i <= dotIdx ? 'var(--accent)' : 'var(--border)');
+    dotIdx = (dotIdx + 1) % 3;
+  }, 400);
+
+  // Countdown
+  let countNum = 5;
+  document.getElementById('scan-countdown-num').textContent = countNum;
+  const countInt = setInterval(() => {
+    countNum--;
+    if (countNum >= 0) document.getElementById('scan-countdown-num').textContent = countNum;
+  }, 1000);
+
+  // Start camera if needed
   if (!stream) {
     await startCamera();
     await new Promise(r => setTimeout(r, 1500));
   }
   if (!modelReady) {
+    clearInterval(dotInt); clearInterval(countInt);
+    scanOv.style.display = 'none';
+    document.getElementById('diag-empty').style.display = 'block';
     alert('Model se načítá, zkus za chvíli znovu.');
     return;
   }
 
-  showScr('s-scan');
-  // Collect 3 seconds of landmarks
-  setScoreUI(0, '🔍 Skenování... stůj rovně', 'ok');
   diagScanActive = true;
   const samples = [];
   const start = Date.now();
 
   const scanLoop = async () => {
     if (!diagScanActive) return;
-    if (Date.now() - start > 3000) {
+    if (Date.now() - start > 5000) {
       diagScanActive = false;
-      if (samples.length > 0) {
+      clearInterval(dotInt); clearInterval(countInt);
+      scanOv.style.display = 'none';
+      if (samples.length > 5) {
         const avg = averageLandmarks(samples);
         diagLandmarks = avg;
         processDiag(avg);
-        showScr('s-diag');
+        document.getElementById('diag-report').style.display = 'block';
+        document.getElementById('diag-empty').style.display = 'none';
+        document.getElementById('s-diag').scrollTop = 0;
+      } else {
+        document.getElementById('diag-empty').style.display = 'block';
+        alert('Nepodařilo se detekovat posturu. Ujisti se, že celé tělo je vidět v záběru.');
       }
       return;
     }
@@ -968,163 +1055,104 @@ function averageLandmarks(samples) {
 // DIAGNOSTIC PROCESSING
 // ============================================================
 function processDiag(kps) {
-  const conf = i => kps[i] && kps[i].score > 0.35;
-
-  // Key points
-  const lSh = kps[5], rSh = kps[6];
-  const lHip = kps[11], rHip = kps[12];
-  const lKn = kps[13], rKn = kps[14];
-  const lAnk = kps[15], rAnk = kps[16];
-  const lWr = kps[9], rWr = kps[10];
-  const nose = kps[0];
-
+  const conf = i => kps[i] && kps[i].score > 0.3;
+  const lSh=kps[5],rSh=kps[6],lHip=kps[11],rHip=kps[12];
+  const lKn=kps[13],rKn=kps[14],lAnk=kps[15],rAnk=kps[16];
+  const lWr=kps[9],rWr=kps[10];
   const results = [];
 
-  // 1. SHOULDER ALIGNMENT (tilt left/right)
-  if (conf(5) && conf(6)) {
-    const shTilt = Math.abs(Math.atan2(rSh.y - lSh.y, rSh.x - lSh.x) * (180 / Math.PI));
-    results.push({
-      id: 'shoulder_tilt',
-      icon: '🏋️',
-      name: 'Asymetrie ramen',
-      value: Math.round(shTilt),
-      unit: '°',
-      good: shTilt < 4,
-      warn: shTilt >= 4 && shTilt < 10,
-      bad: shTilt >= 10,
-      detail: shTilt < 4 ? 'Ramena jsou symetrická — skvěle!' :
-              shTilt < 10 ? `Mírná asymetrie ${Math.round(shTilt)}° — jedno rameno výš` :
-              `Výrazná asymetrie ${Math.round(shTilt)}° — nutná práce na vyrovnání`,
-      muscles: ['Trapézový sval', 'Serratus anterior', 'Rotátory'],
-      limitFor: 'Stojka bude rotovat — nelze dosáhnout vertikály'
-    });
+  if (conf(5)&&conf(6)) {
+    const shTilt=Math.abs(Math.atan2(rSh.y-lSh.y,rSh.x-lSh.x)*(180/Math.PI));
+    results.push({id:'shoulder_tilt',icon:'🏋️',name:'Asymetrie ramen',value:Math.round(shTilt),unit:'°',
+      good:shTilt<4,warn:shTilt>=4&&shTilt<10,bad:shTilt>=10,
+      detail:shTilt<4?'Ramena jsou symetrická — skvěle!':shTilt<10?`Mírná asymetrie ${Math.round(shTilt)}° — jedno rameno výš`:`Výrazná asymetrie ${Math.round(shTilt)}° — nutná práce`,
+      limitFor:'Stojka bude rotovat — nelze dosáhnout čisté vertikály'});
   }
 
-  // 2. OVERHEAD MOBILITY — wrist position relative to shoulders
-  if (conf(9) && conf(10) && conf(5) && conf(6)) {
-    const midSh = { x: (lSh.x + rSh.x) / 2, y: (lSh.y + rSh.y) / 2 };
-    const midWr = { x: (lWr.x + rWr.x) / 2, y: (lWr.y + rWr.y) / 2 };
-    // In standing, check if wrists can reach overhead (y of wrists vs shoulders)
-    // Also check anterior shoulder (are shoulders rounded?)
-    const shWidth = Math.abs(rSh.x - lSh.x);
-    const wrWidth = Math.abs(rWr.x - lWr.x);
-    const overheadRatio = wrWidth / shWidth;
-    // If wrists are much narrower than shoulders when raised, limited overhead
-    const overheadScore = Math.round(overheadRatio * 100);
-    results.push({
-      id: 'overhead',
-      icon: '💪',
-      name: 'Overhead mobilita',
-      value: overheadScore,
-      unit: '%',
-      good: overheadScore > 85,
-      warn: overheadScore >= 65 && overheadScore <= 85,
-      bad: overheadScore < 65,
-      detail: overheadScore > 85 ? 'Dobrá overhead mobilita ramen' :
-              overheadScore >= 65 ? 'Omezená mobilita — ramena nejdou plně za uši' :
-              'Výrazně omezená overhead mobilita — klíčový problém pro stojku',
-      muscles: ['Přední deltoid', 'Velký prsní', 'Latissimus dorsi'],
-      limitFor: 'Bez otevřených ramen nelze dosáhnout bezpečné vertikály'
-    });
+  if (conf(9)&&conf(10)&&conf(5)&&conf(6)) {
+    const shW=Math.abs(rSh.x-lSh.x),wrW=Math.abs(rWr.x-lWr.x);
+    const ratio=Math.min(wrW/Math.max(shW,1),1.2);
+    const score=Math.round(Math.min(ratio*83,100));
+    results.push({id:'overhead',icon:'💪',name:'Overhead mobilita',value:score,unit:'%',
+      good:score>80,warn:score>=60&&score<=80,bad:score<60,
+      detail:score>80?'Dobrá overhead mobilita ramen':score>=60?'Omezená mobilita — ramena nejdou plně za uši':'Výrazně omezená overhead mobilita — klíčový problém',
+      limitFor:'Bez otevřených ramen nelze bezpečně dosáhnout vertikály'});
   }
 
-  // 3. HIP ALIGNMENT
-  if (conf(11) && conf(12)) {
-    const hipTilt = Math.abs(Math.atan2(rHip.y - lHip.y, rHip.x - lHip.x) * (180 / Math.PI));
-    results.push({
-      id: 'hip_tilt',
-      icon: '🦴',
-      name: 'Pelvický tilt',
-      value: Math.round(hipTilt),
-      unit: '°',
-      good: hipTilt < 5,
-      warn: hipTilt >= 5 && hipTilt < 12,
-      bad: hipTilt >= 12,
-      detail: hipTilt < 5 ? 'Pánev je symetrická — výborně' :
-              hipTilt < 12 ? `Mírný tilt pánve ${Math.round(hipTilt)}° — lehká asymetrie` :
-              `Výrazný tilt pánve ${Math.round(hipTilt)}° — způsobuje banana back ve stojce`,
-      muscles: ['Iliopsoas', 'Quadratus lumborum', 'Gluteus medius'],
-      limitFor: 'Anteriorní tilt pánve = prohnutá záda ve stojce'
-    });
+  if (conf(11)&&conf(12)) {
+    const hipTilt=Math.abs(Math.atan2(rHip.y-lHip.y,rHip.x-lHip.x)*(180/Math.PI));
+    results.push({id:'hip_tilt',icon:'🦴',name:'Pelvický tilt',value:Math.round(hipTilt),unit:'°',
+      good:hipTilt<5,warn:hipTilt>=5&&hipTilt<12,bad:hipTilt>=12,
+      detail:hipTilt<5?'Pánev je symetrická — výborně':hipTilt<12?`Mírný tilt ${Math.round(hipTilt)}°`:`Výrazný tilt ${Math.round(hipTilt)}° — způsobuje banana back`,
+      limitFor:'Anteriorní tilt pánve = prohnutá záda ve stojce'});
   }
 
-  // 4. LATERAL BODY LINE (scoliosis check)
-  if (conf(5) && conf(6) && conf(11) && conf(12)) {
-    const midSh = { x: (lSh.x + rSh.x) / 2, y: (lSh.y + rSh.y) / 2 };
-    const midHip = { x: (lHip.x + rHip.x) / 2, y: (lHip.y + rHip.y) / 2 };
-    const lateralDev = Math.abs(midSh.x - midHip.x) / (Math.abs(rSh.x - lSh.x)) * 100;
-    results.push({
-      id: 'lateral',
-      icon: '📐',
-      name: 'Laterální linie',
-      value: Math.round(100 - lateralDev),
-      unit: '%',
-      good: lateralDev < 8,
-      warn: lateralDev >= 8 && lateralDev < 18,
-      bad: lateralDev >= 18,
-      detail: lateralDev < 8 ? 'Tělo je v přímé ose — skvělá báze' :
-              lateralDev < 18 ? 'Mírný laterální posun — core kompenzuje' :
-              'Výrazný laterální posun — omezení core stability',
-      muscles: ['Quadratus lumborum', 'Obliques', 'Serratus anterior'],
-      limitFor: 'Laterální posun = nestabilní stojka, padání do strany'
-    });
+  if (conf(5)&&conf(6)&&conf(11)&&conf(12)) {
+    const midShX=(lSh.x+rSh.x)/2,midHipX=(lHip.x+rHip.x)/2;
+    const shW=Math.abs(rSh.x-lSh.x);
+    const latDev=Math.abs(midShX-midHipX)/Math.max(shW,1)*100;
+    results.push({id:'lateral',icon:'📐',name:'Laterální linie',value:Math.round(Math.max(0,100-latDev*3)),unit:'%',
+      good:latDev<8,warn:latDev>=8&&latDev<18,bad:latDev>=18,
+      detail:latDev<8?'Tělo je v přímé ose — skvělá báze':latDev<18?'Mírný laterální posun — core kompenzuje':'Výrazný laterální posun — omezení core stability',
+      limitFor:'Laterální posun = nestabilní stojka, padání do strany'});
   }
 
-  // 5. KNEE ALIGNMENT
-  if (conf(13) && conf(14) && conf(11) && conf(12)) {
-    const knTilt = Math.abs(Math.atan2(rKn.y - lKn.y, rKn.x - lKn.x) * (180 / Math.PI));
-    results.push({
-      id: 'knee',
-      icon: '🦵',
-      name: 'Alignace kolen',
-      value: Math.round(knTilt),
-      unit: '°',
-      good: knTilt < 5,
-      warn: knTilt >= 5 && knTilt < 12,
-      bad: knTilt >= 12,
-      detail: knTilt < 5 ? 'Kolena jsou symetrická' :
-              knTilt < 12 ? `Mírná asymetrie kolen ${Math.round(knTilt)}°` :
-              `Výrazná asymetrie kolen — kontroluj flexi kyčlí`,
-      muscles: ['Quadriceps', 'Hamstringy', 'IT band'],
-      limitFor: 'Asymetrie kolen způsobuje rotaci těla ve stojce'
-    });
+  if (conf(13)&&conf(14)) {
+    const knTilt=Math.abs(Math.atan2(rKn.y-lKn.y,rKn.x-lKn.x)*(180/Math.PI));
+    results.push({id:'knee',icon:'🦵',name:'Alignace kolen',value:Math.round(knTilt),unit:'°',
+      good:knTilt<5,warn:knTilt>=5&&knTilt<12,bad:knTilt>=12,
+      detail:knTilt<5?'Kolena jsou symetrická':knTilt<12?`Mírná asymetrie kolen ${Math.round(knTilt)}°`:`Výrazná asymetrie kolen`,
+      limitFor:'Asymetrie kolen způsobuje rotaci těla ve stojce'});
   }
 
-  // Store results
-  ST.lastDiag = { results, date: new Date().toISOString() };
+  const numScores = results.map(r=>r.unit==='%'?r.value:r.good?90:r.warn?60:30);
+  const overall = Math.round(numScores.reduce((a,b)=>a+b,0)/Math.max(numScores.length,1));
+
+  ST.lastDiag={results,overall,date:new Date().toISOString()};
   save();
-
-  // Render results
-  renderDiagResults(results, kps);
-  // Generate warmup
-  generateWarmup(results);
-  // Draw skeleton
+  renderReport(results,overall,kps);
   drawDiagSkeleton(kps);
 }
 
-function renderDiagResults(results, kps) {
-  document.getElementById('skel-section').style.display = 'block';
-  document.getElementById('diag-results-section').style.display = 'block';
-  document.getElementById('scan-card').style.display = 'none';
+function renderReport(results, overall, kps) {
+  document.getElementById('report-date').textContent =
+    'Sken: ' + new Date().toLocaleString('cs-CZ',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+
+  const overallEl = document.getElementById('overall-num');
+  overallEl.textContent = overall;
+  overallEl.style.color = overall>=80?'var(--green)':overall>=60?'var(--yellow)':'var(--red)';
+  document.getElementById('overall-label').textContent = overall>=80?'🟢 Výborná postura':overall>=60?'🟡 Drobná omezení':'🔴 Výrazná omezení';
+  document.getElementById('overall-desc').textContent = overall>=80?'Skvělý základ pro stojku. Warm-up zaměřen na aktivaci.':
+    overall>=60?'Nalezena omezení, která ovlivní stojku. Warm-up je cílený.':
+    'Omezení výrazně limitují stojku. Zaměř se na warm-up před každým tréninkem.';
 
   const container = document.getElementById('diag-results');
   container.innerHTML = results.map(r => {
-    const cls = r.bad ? 'bad' : r.warn ? 'warn' : 'good';
-    const icon2 = r.bad ? '🔴' : r.warn ? '🟡' : '🟢';
-    return `
-      <div class="diag-item ${cls}">
-        <div class="diag-icon">${r.icon}</div>
-        <div class="diag-info">
-          <div class="diag-name">${r.name} ${icon2}</div>
-          <div class="diag-detail">${r.detail}</div>
-          ${r.bad || r.warn ? `<div class="diag-detail" style="margin-top:4px;color:var(--red);opacity:.8">⚠️ ${r.limitFor}</div>` : ''}
-        </div>
-        <div class="diag-score">${r.value}${r.unit}</div>
-      </div>`;
+    const cls = r.bad?'bad':r.warn?'warn':'good';
+    const statusIcon = r.bad?'🔴':r.warn?'🟡':'🟢';
+    const barColor = r.bad?'var(--red)':r.warn?'var(--yellow)':'var(--green)';
+    const barPct = r.unit==='%'?r.value:r.good?92:r.warn?58:28;
+    return '<div class="diag-item '+cls+'" style="flex-direction:column;gap:10px">'+
+      '<div style="display:flex;align-items:flex-start;gap:12px;width:100%">'+
+        '<div class="diag-icon">'+r.icon+'</div>'+
+        '<div style="flex:1">'+
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">'+
+            '<div class="diag-name">'+r.name+' '+statusIcon+'</div>'+
+            '<div class="diag-score">'+r.value+r.unit+'</div>'+
+          '</div>'+
+          '<div class="diag-detail">'+r.detail+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div style="width:100%">'+
+        '<div style="height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden">'+
+          '<div style="height:100%;width:'+barPct+'%;background:'+barColor+';border-radius:2px;transition:width .8s ease"></div>'+
+        '</div>'+
+        ((r.bad||r.warn)?'<div style="font-size:11px;color:rgba(255,100,80,.8);margin-top:5px">⚠️ '+r.limitFor+'</div>':'') +
+      '</div>'+
+    '</div>';
   }).join('');
 
-  document.getElementById('diag-sub').textContent =
-    `Poslední sken: ${new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}`;
+  generateWarmup(results);
 }
 
 function drawDiagSkeleton(kps) {
@@ -1271,88 +1299,74 @@ const WARMUP_DRILLS = {
 
 function generateWarmup(diagResults) {
   const warmupItems = [];
-
-  // Always include
   warmupItems.push(WARMUP_DRILLS.wrist_prep);
   warmupItems.push(WARMUP_DRILLS.cat_cow);
   warmupItems.push(WARMUP_DRILLS.hollow_body);
-
-  // Based on issues found
-  const issues = diagResults.filter(r => r.bad || r.warn).map(r => r.id);
-
-  if (issues.includes('overhead') || issues.includes('shoulder_tilt')) {
+  const issues = diagResults.filter(r=>r.bad||r.warn).map(r=>r.id);
+  if (issues.includes('overhead')||issues.includes('shoulder_tilt')) {
     warmupItems.push(WARMUP_DRILLS.shoulder_open);
     warmupItems.push(WARMUP_DRILLS.wall_slides);
     warmupItems.push(WARMUP_DRILLS.thoracic_rotation);
   }
-
   if (issues.includes('hip_tilt')) {
     warmupItems.push(WARMUP_DRILLS.rib_tuck);
     warmupItems.push(WARMUP_DRILLS.posterior_pelvic_tilt);
     warmupItems.push(WARMUP_DRILLS.hip_flexor_stretch);
   }
-
   if (issues.includes('lateral')) {
     warmupItems.push(WARMUP_DRILLS.lat_stretch);
     warmupItems.push(WARMUP_DRILLS.side_plank);
   }
-
-  if (issues.includes('shoulder_tilt') && !warmupItems.includes(WARMUP_DRILLS.scapular_pushups)) {
-    warmupItems.push(WARMUP_DRILLS.scapular_pushups);
-  }
-
-  // Deduplicate
-  const unique = [];
-  const seen = new Set();
-  warmupItems.forEach(w => {
-    if (!seen.has(w.name)) { seen.add(w.name); unique.push(w); }
-  });
-
-  // Generate intro text
-  const badCount = diagResults.filter(r => r.bad).length;
-  const warnCount = diagResults.filter(r => r.warn).length;
-  let intro = '';
-  if (badCount === 0 && warnCount === 0) {
-    intro = '🎉 Výborná postura! Tvůj warm-up je standardní příprava na stojku.';
-  } else if (badCount > 0) {
-    const names = diagResults.filter(r => r.bad).map(r => r.name).join(', ');
-    intro = `⚠️ Nalezena omezení: ${names}. Warm-up je nastaven prioritně na jejich odstranění.`;
-  } else {
-    intro = `💡 Mírná omezení nalezena. Warm-up cílí na jejich zlepšení před stojkou.`;
-  }
-
-  document.getElementById('warmup-intro').textContent = intro;
-  document.getElementById('warmup-section').style.display = 'block';
-  ST.warmupDone = {};
+  if (issues.includes('shoulder_tilt')) warmupItems.push(WARMUP_DRILLS.scapular_pushups);
+  const unique=[];const seen=new Set();
+  warmupItems.forEach(w=>{if(!seen.has(w.name)){seen.add(w.name);unique.push(w);}});
+  const badCount=diagResults.filter(r=>r.bad).length;
+  const warnCount=diagResults.filter(r=>r.warn).length;
+  let intro='';
+  if(badCount===0&&warnCount===0) intro='🎉 Výborná postura! Warm-up je standardní příprava na stojku.';
+  else if(badCount>0){const names=diagResults.filter(r=>r.bad).map(r=>r.name).join(', ');intro='⚠️ Prioritní oblasti: '+names+'. Nepřeskakuj warm-up — je cílený na tvoje omezení.';}
+  else intro='💡 Mírná omezení. Warm-up cílí na jejich zlepšení před stojkou.';
+  document.getElementById('warmup-intro').textContent=intro;
+  ST.warmupDone={};save();
+  window._currentWarmup=unique;
   renderWarmup(unique);
 }
 
 function renderWarmup(items) {
   const list = document.getElementById('warmup-list');
-  list.innerHTML = items.map((item, i) => `
-    <div class="warmup-item ${ST.warmupDone[i] ? 'done' : ''}" id="wi-${i}" onclick="toggleWarmup(${i})">
-      <div class="wi-icon ${item.type}">${item.icon}</div>
-      <div class="wi-body">
-        <div class="wi-name">${item.name}</div>
-        <div class="wi-detail">${item.detail}</div>
-        <div class="wi-tags">
-          <span class="wi-tag">${item.sets}</span>
-          <span class="wi-tag target">🎯 ${item.target}</span>
-          <span class="wi-tag">${item.cue.substring(0, 30)}...</span>
-        </div>
-      </div>
-      <div class="wi-check">${ST.warmupDone[i] ? '✓' : ''}</div>
-    </div>`).join('');
-  // Store for toggle
-  window._currentWarmup = items;
+  list.innerHTML = items.map((item,i) =>
+    '<div class="warmup-item '+(ST.warmupDone[i]?'done':'')+'" id="wi-'+i+'" onclick="toggleWarmup('+i+','+items.length+')">'+
+      '<div class="wi-icon '+item.type+'">'+item.icon+'</div>'+
+      '<div class="wi-body">'+
+        '<div class="wi-name">'+item.name+'</div>'+
+        '<div class="wi-detail">'+item.detail+'</div>'+
+        '<div class="wi-tags">'+
+          '<span class="wi-tag">'+item.sets+'</span>'+
+          '<span class="wi-tag target">🎯 '+item.target+'</span>'+
+        '</div>'+
+        '<div style="font-size:11px;color:var(--accent);margin-top:5px;font-style:italic">💡 '+item.cue+'</div>'+
+      '</div>'+
+      '<div class="wi-check">'+(ST.warmupDone[i]?'✓':'')+'</div>'+
+    '</div>'
+  ).join('');
+  updateWarmupProgress(items.length);
 }
 
-function toggleWarmup(i) {
-  ST.warmupDone[i] = !ST.warmupDone[i];
-  save();
-  const el = document.getElementById(`wi-${i}`);
-  el.classList.toggle('done', ST.warmupDone[i]);
-  el.querySelector('.wi-check').textContent = ST.warmupDone[i] ? '✓' : '';
+function toggleWarmup(i, total) {
+  ST.warmupDone[i]=!ST.warmupDone[i];save();
+  const el=document.getElementById('wi-'+i);
+  el.classList.toggle('done',ST.warmupDone[i]);
+  el.querySelector('.wi-check').textContent=ST.warmupDone[i]?'✓':'';
+  updateWarmupProgress(total||(window._currentWarmup?window._currentWarmup.length:0));
+}
+
+function updateWarmupProgress(total) {
+  const done=Object.values(ST.warmupDone).filter(Boolean).length;
+  const pct=total>0?Math.round(done/total*100):0;
+  const bar=document.getElementById('warmup-progress-bar');
+  const lbl=document.getElementById('warmup-progress-label');
+  if(bar) bar.style.width=pct+'%';
+  if(lbl) lbl.textContent=done+' / '+total+' hotovo';
 }
 
 // ============================================================
