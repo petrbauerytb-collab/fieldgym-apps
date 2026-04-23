@@ -8,215 +8,238 @@
 <meta name="apple-mobile-web-app-title" content="Stojka Lab">
 <title>Stojka Lab</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- TensorFlow.js + MoveNet — lightweight, works on iPhone Safari -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
 <style>
-:root{--bg:#080a0c;--surface:#0f1318;--card:#151a20;--border:#1e2530;--accent:#00e5ff;--accent2:#ff6b35;--green:#00e676;--yellow:#ffea00;--red:#ff1744;--purple:#d500f9;--text:#e8eaf0;--muted:#4a5568;--r:14px}
+:root{
+  --bg:#07090b;--surface:#0f1318;--card:#141920;--border:#1d2530;
+  --accent:#00e5ff;--accent2:#ff6b35;--green:#00e676;--yellow:#ffea00;
+  --red:#ff1744;--purple:#d500f9;--text:#e8eaf0;--muted:#4a5568;
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow:hidden;user-select:none}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;user-select:none}
 
 /* NAV */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(8,10,12,0.97);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0;transition:opacity .2s}
-.nav-icon{font-size:20px;line-height:1}
-.nav-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);transition:color .2s}
-.nav-item.active .nav-label{color:var(--accent)}
-.nav-item.active .nav-icon{filter:drop-shadow(0 0 6px var(--accent))}
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(7,9,11,.97);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0}
+.ni-icon{font-size:20px;line-height:1}
+.ni-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);transition:color .2s}
+.ni.active .ni-label{color:var(--accent)}
+.ni.active .ni-icon{filter:drop-shadow(0 0 6px var(--accent))}
 
 /* SCREENS */
-.screen{display:none;height:100vh;overflow-y:auto;padding-bottom:80px}
-.screen.active{display:block;animation:fadeIn .3s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.screen{display:none;height:100vh;overflow-y:auto;padding-bottom:80px;animation:fadeUp .3s ease}
+.screen.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
-/* HEADER */
-.screen-header{padding:18px 16px 12px;position:sticky;top:0;z-index:50;background:rgba(8,10,12,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
-.screen-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;line-height:1}
-.screen-title span{color:var(--accent)}
-.screen-sub{font-size:11px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace;letter-spacing:.5px}
+/* SHARED */
+.hdr{padding:18px 16px 12px;position:sticky;top:0;z-index:50;background:rgba(7,9,11,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.hdr-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;line-height:1}
+.hdr-title span{color:var(--accent)}
+.hdr-sub{font-size:11px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace;letter-spacing:.5px}
+.pad{padding:16px}
+.sec-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.btn-primary{width:100%;background:var(--accent);color:#000;border:none;border-radius:12px;padding:15px;font-family:'DM Mono',monospace;font-size:14px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary:active{opacity:.85}
+.btn-ghost{background:rgba(255,255,255,.07);border:1px solid var(--border);border-radius:12px;padding:12px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);cursor:pointer;text-transform:uppercase;letter-spacing:1px;width:100%}
 
-/* =========== HOME =========== */
-.content{padding:16px}
-.hero-card{background:linear-gradient(135deg,#0a1628,#0d2040);border:1px solid rgba(0,229,255,.2);border-radius:20px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden}
-.hero-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(0,229,255,.07),transparent 70%);pointer-events:none}
-.hero-greeting{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
-.hero-phase{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;line-height:1.1;margin-bottom:14px}
-.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;font-family:'DM Mono',monospace}
-.progress-label span{color:var(--accent)}
-.progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:16px}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),#00b8d4);border-radius:2px;transition:width .8s cubic-bezier(.16,1,.3,1)}
-.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.hero-stat{text-align:center;background:rgba(0,0,0,.3);border-radius:10px;padding:10px 6px;border:1px solid var(--border)}
-.hero-stat-value{font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1;color:var(--accent)}
-.hero-stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace;margin-top:2px}
-.section-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
-.streak-row{display:flex;gap:6px;margin-bottom:16px}
-.streak-day{flex:1;height:6px;border-radius:3px;background:var(--border)}
-.streak-day.done{background:var(--accent)}
-.streak-day.today{background:var(--accent2);animation:pulse-bar 1.5s ease-in-out infinite}
-@keyframes pulse-bar{0%,100%{opacity:1}50%{opacity:.5}}
-.today-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:14px;cursor:pointer}
-.today-card.done{opacity:.5}
-.today-card.done .today-name{text-decoration:line-through}
-.today-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
-.today-icon.warmup{background:rgba(255,234,0,.1);border:1px solid rgba(255,234,0,.2)}
-.today-icon.main{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.2)}
-.today-icon.drill{background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.2)}
-.today-icon.strength{background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.2)}
-.today-info{flex:1}
-.today-name{font-size:15px;font-weight:600;margin-bottom:2px}
-.today-detail{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace}
-.today-check{width:24px;height:24px;border:2px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all .2s}
-.today-card.done .today-check{background:var(--green);border-color:var(--green);color:#000}
-.btn-main{width:100%;background:var(--accent);color:#000;border:none;border-radius:14px;padding:16px;font-family:'DM Mono',monospace;font-size:15px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s}
-.btn-main:active{opacity:.8}
+/* ========== SCAN SCREEN (main) ========== */
+#s-scan{padding-bottom:0;overflow:hidden}
+.cam-wrap{position:relative;width:100%;height:100vh;background:#000;overflow:hidden}
+#vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#cv{position:absolute;inset:0;width:100%;height:100%;transform:scaleX(-1)}
 
-/* =========== CAMERA =========== */
-#s-camera{position:relative;padding-bottom:0}
-.camera-container{position:relative;width:100%;height:100vh;background:#000;overflow:hidden}
-#camera-video{position:absolute;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
-#pose-canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1)}
-.cam-overlay{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:10}
-.cam-top{position:absolute;top:0;left:0;right:0;padding:50px 16px 16px;background:linear-gradient(to bottom,rgba(0,0,0,.85),transparent);pointer-events:none}
-.mode-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,229,255,.15);border:1px solid rgba(0,229,255,.3);border-radius:20px;padding:6px 14px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
-.mode-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:blink 1s infinite}
+/* Top HUD */
+.cam-hud-top{position:absolute;top:0;left:0;right:0;padding:50px 16px 16px;background:linear-gradient(to bottom,rgba(0,0,0,.88),transparent);z-index:10;pointer-events:none}
+.cam-mode{display:inline-flex;align-items:center;gap:6px;background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.25);border-radius:20px;padding:5px 12px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.cam-mode-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);animation:blink 1s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-.align-display{display:flex;align-items:center;gap:12px}
-.align-score{font-family:'Bebas Neue',sans-serif;font-size:60px;line-height:1;color:var(--green);text-shadow:0 0 20px rgba(0,230,118,.5);transition:color .3s;min-width:80px}
-.align-score.mid{color:var(--yellow);text-shadow:0 0 20px rgba(255,234,0,.5)}
-.align-score.low{color:var(--red);text-shadow:0 0 20px rgba(255,23,68,.5)}
-.align-info{flex:1}
-.align-label{font-size:10px;color:rgba(255,255,255,.5);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:3px}
-.feedback-txt{font-size:14px;font-weight:600;color:var(--text);line-height:1.3}
 
-/* HOLD TIMER CENTER */
-.hold-timer{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;opacity:0;transition:opacity .4s}
-.hold-timer.active{opacity:1}
-.ring-wrap{width:150px;height:150px;position:relative;margin:0 auto 8px}
-.ring-wrap svg{position:absolute;top:0;left:0;transform:rotate(-90deg)}
+/* Score display */
+.score-row{display:flex;gap:8px;align-items:flex-start}
+.score-big{font-family:'Bebas Neue',sans-serif;font-size:56px;line-height:1;min-width:70px;transition:color .3s}
+.score-big.good{color:var(--green);text-shadow:0 0 20px rgba(0,230,118,.4)}
+.score-big.ok{color:var(--yellow);text-shadow:0 0 20px rgba(255,234,0,.4)}
+.score-big.bad{color:var(--red);text-shadow:0 0 20px rgba(255,23,68,.4)}
+.score-big.idle{color:var(--muted)}
+.score-info{}
+.score-label{font-size:9px;color:rgba(255,255,255,.45);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px}
+.score-fb{font-size:13px;font-weight:600;color:var(--text);line-height:1.3;max-width:180px}
+
+/* Skeleton canvas overlay lines */
+.vert-guide{position:absolute;top:0;left:50%;transform:translateX(-50%);width:1px;height:100%;background:linear-gradient(to bottom,transparent,rgba(0,229,255,.2),transparent);pointer-events:none;z-index:5}
+
+/* Side angle panel */
+.angle-panel{position:absolute;top:50%;right:12px;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;pointer-events:none;z-index:10}
+.a-box{background:rgba(0,0,0,.8);border:1px solid var(--border);border-radius:8px;padding:6px 10px;text-align:center;min-width:58px}
+.a-val{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--accent);line-height:1}
+.a-lbl{font-size:8px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+.a-box.warn{border-color:rgba(255,23,68,.4)}
+.a-box.warn .a-val{color:var(--red)}
+
+/* Hold timer ring */
+.hold-ring-wrap{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:10;opacity:0;transition:opacity .4s}
+.hold-ring-wrap.show{opacity:1}
+.ring-svg{display:block;margin:0 auto 6px}
 .ring-bg{stroke:rgba(255,255,255,.08)}
 .ring-fill{stroke:var(--accent);stroke-dasharray:440;stroke-dashoffset:440;transition:stroke-dashoffset 1s linear,stroke .3s;stroke-linecap:round}
-.hold-secs{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Bebas Neue',sans-serif;font-size:56px;color:#fff;letter-spacing:2px;line-height:1}
-.hold-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5)}
-.pb-flash{display:inline-flex;align-items:center;gap:6px;background:rgba(255,234,0,.2);border:1px solid rgba(255,234,0,.4);border-radius:20px;padding:4px 12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--yellow);margin-top:6px;opacity:0;transition:opacity .3s}
-.pb-flash.show{opacity:1}
+.hold-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-family:'Bebas Neue',sans-serif;font-size:56px;color:#fff;letter-spacing:2px;line-height:1}
+.hold-lbl{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.pb-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(255,234,0,.2);border:1px solid rgba(255,234,0,.4);border-radius:20px;padding:3px 10px;font-family:'DM Mono',monospace;font-size:10px;color:var(--yellow);margin-top:5px;opacity:0;transition:opacity .3s}
+.pb-badge.show{opacity:1}
 
-/* ANGLE SIDE PANEL */
-.angle-panel{position:absolute;top:50%;right:12px;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;pointer-events:none}
-.angle-box{background:rgba(0,0,0,.75);border:1px solid var(--border);border-radius:8px;padding:6px 10px;text-align:center;min-width:58px}
-.angle-val{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--accent);line-height:1}
-.angle-lbl{font-size:8px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase}
-
-/* BODY ALIGNMENT GUIDE */
-.vert-guide{position:absolute;top:0;left:50%;transform:translateX(-50%);width:2px;height:100%;background:linear-gradient(to bottom,transparent,rgba(0,229,255,.25),transparent);pointer-events:none}
-
-/* CAM BOTTOM */
-.cam-bottom{position:absolute;bottom:0;left:0;right:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(to top,rgba(0,0,0,.92),transparent);pointer-events:all}
+/* Bottom controls */
+.cam-bottom{position:absolute;bottom:0;left:0;right:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(to top,rgba(0,0,0,.92),transparent);z-index:10}
 .cam-controls{display:flex;gap:10px;align-items:center;justify-content:center;margin-bottom:10px}
-.cam-btn{border:none;border-radius:50px;cursor:pointer;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:11px 18px;transition:all .2s;display:flex;align-items:center;gap:6px}
-.cam-btn-primary{background:var(--accent);color:#000;font-weight:700;padding:13px 26px;font-size:13px}
-.cam-btn-primary:active{transform:scale(.95)}
-.cam-btn-sec{background:rgba(255,255,255,.1);color:var(--text);border:1px solid var(--border)}
-.sess-bar{display:flex;gap:8px;justify-content:center}
-.sess-stat{text-align:center;background:rgba(0,0,0,.55);border:1px solid var(--border);border-radius:8px;padding:5px 10px}
-.sess-val{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--text);line-height:1}
-.sess-lbl{font-size:8px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+.cbtn{border:none;border-radius:50px;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:11px 18px;transition:all .2s;display:flex;align-items:center;gap:5px}
+.cbtn-main{background:var(--accent);color:#000;font-weight:700;padding:13px 26px;font-size:13px}
+.cbtn-main:active{transform:scale(.95)}
+.cbtn-sec{background:rgba(255,255,255,.09);color:var(--text);border:1px solid var(--border)}
+.sess-row{display:flex;gap:8px;justify-content:center}
+.s-stat{text-align:center;background:rgba(0,0,0,.55);border:1px solid var(--border);border-radius:8px;padding:5px 10px}
+.s-val{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--text);line-height:1}
+.s-lbl{font-size:8px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase}
 
-/* CAM PLACEHOLDER */
-#cam-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);z-index:5;text-align:center;padding:40px 24px}
-.btn-allow{background:var(--accent);color:#000;border:none;border-radius:12px;padding:14px 28px;font-family:'DM Mono',monospace;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-top:20px}
+/* Placeholder */
+#cam-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);z-index:15;text-align:center;padding:32px 24px;gap:12px}
+.ph-icon{font-size:64px;opacity:.25}
+.ph-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px}
+.ph-sub{font-size:13px;color:var(--muted);line-height:1.7;max-width:280px}
+.ph-loading{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:1px;animation:pulse-txt 1.5s ease-in-out infinite}
+@keyframes pulse-txt{0%,100%{opacity:1}50%{opacity:.3}}
 
-/* COUNTDOWN */
-.countdown-ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;pointer-events:none;opacity:0;transition:opacity .3s}
-.countdown-ov.active{opacity:1}
-.countdown-n{font-family:'Bebas Neue',sans-serif;font-size:130px;color:#fff;text-shadow:0 0 40px rgba(0,229,255,.8)}
+/* Countdown overlay */
+.cdown-ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;pointer-events:none;opacity:0;transition:opacity .2s}
+.cdown-ov.show{opacity:1}
+.cdown-n{font-family:'Bebas Neue',sans-serif;font-size:140px;color:#fff;text-shadow:0 0 40px rgba(0,229,255,.8);animation:cdown-pop 1s ease}
+@keyframes cdown-pop{0%{transform:scale(1.5);opacity:0}30%{transform:scale(.9);opacity:1}70%{transform:scale(1);opacity:1}100%{transform:scale(.8);opacity:0}}
 
-/* MANUAL TIMER MODE */
-.manual-timer-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.9);z-index:15}
-.manual-time-big{font-family:'Bebas Neue',sans-serif;font-size:100px;color:var(--accent);line-height:1;text-shadow:0 0 30px rgba(0,229,255,.5)}
-.manual-sub{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:24px}
-.btn-manual-hold{background:var(--green);color:#000;border:none;border-radius:50%;width:100px;height:100px;font-family:'Bebas Neue',sans-serif;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.2;box-shadow:0 0 30px rgba(0,230,118,.4)}
-.btn-manual-hold.holding{background:var(--red);box-shadow:0 0 30px rgba(255,23,68,.4)}
+/* ========== DIAGNOSTIC SCREEN ========== */
+#s-diag .pad{display:flex;flex-direction:column;gap:14px}
 
-/* =========== PROGRESS =========== */
+/* Scan button card */
+.scan-card{background:linear-gradient(135deg,#0a1628,#0d2040);border:1px solid rgba(0,229,255,.2);border-radius:20px;padding:20px;position:relative;overflow:hidden}
+.scan-card::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(0,229,255,.07),transparent 70%);pointer-events:none}
+.scan-subtitle{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.scan-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;line-height:1.1;margin-bottom:6px}
+.scan-desc{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px}
+
+/* Diagnostic results */
+.diag-results{display:flex;flex-direction:column;gap:10px}
+.diag-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px}
+.diag-item.good{border-color:rgba(0,230,118,.3);background:rgba(0,230,118,.04)}
+.diag-item.warn{border-color:rgba(255,234,0,.3);background:rgba(255,234,0,.04)}
+.diag-item.bad{border-color:rgba(255,23,68,.3);background:rgba(255,23,68,.04)}
+.diag-icon{font-size:28px;flex-shrink:0}
+.diag-info{flex:1}
+.diag-name{font-size:14px;font-weight:600;margin-bottom:2px}
+.diag-detail{font-size:12px;color:var(--muted);line-height:1.4}
+.diag-score{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent)}
+.diag-item.good .diag-score{color:var(--green)}
+.diag-item.warn .diag-score{color:var(--yellow)}
+.diag-item.bad .diag-score{color:var(--red)}
+
+/* Skeleton preview */
+.skeleton-preview{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;position:relative}
+#diag-canvas{width:100%;display:block;border-radius:14px}
+.skel-label{position:absolute;top:10px;left:10px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);background:rgba(0,0,0,.7);padding:4px 8px;border-radius:6px}
+
+/* Warmup plan */
+.warmup-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.warmup-item.done{opacity:.5}
+.warmup-item.done .wi-name{text-decoration:line-through}
+.wi-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.wi-icon.mobility{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.2)}
+.wi-icon.strength{background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.2)}
+.wi-icon.activation{background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.2)}
+.wi-icon.stretch{background:rgba(213,0,249,.1);border:1px solid rgba(213,0,249,.2)}
+.wi-body{flex:1}
+.wi-name{font-size:14px;font-weight:600;margin-bottom:3px}
+.wi-detail{font-size:12px;color:var(--muted);line-height:1.4;margin-bottom:6px}
+.wi-tags{display:flex;gap:5px;flex-wrap:wrap}
+.wi-tag{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface);border-radius:4px;padding:2px 6px;border:1px solid var(--border)}
+.wi-tag.target{color:var(--accent);border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.06)}
+.wi-check{width:22px;height:22px;border:2px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px;transition:all .2s}
+.warmup-item.done .wi-check{background:var(--green);border-color:var(--green);color:#000}
+
+/* ========== PROGRESS ========== */
 .pb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.pb-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:center}
-.pb-card.hl{border-color:rgba(255,234,0,.4);background:rgba(255,234,0,.04)}
-.pb-val{font-family:'Bebas Neue',sans-serif;font-size:38px;color:var(--accent);line-height:1;margin-bottom:2px}
-.pb-card.hl .pb-val{color:var(--yellow)}
-.pb-lbl{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase}
-.chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.pb-c{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
+.pb-c.hl{border-color:rgba(255,234,0,.4);background:rgba(255,234,0,.04)}
+.pb-v{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--accent);line-height:1;margin-bottom:2px}
+.pb-c.hl .pb-v{color:var(--yellow)}
+.pb-l{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+.chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
 .chart-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:12px}
 .bars{display:flex;align-items:flex-end;gap:4px;height:80px}
-.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.bc{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
 .bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(to top,rgba(0,229,255,.6),rgba(0,229,255,.2));min-height:3px}
-.bar.is-pb{background:linear-gradient(to top,var(--yellow),rgba(255,234,0,.3))}
-.bar-lbl{font-size:8px;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap}
-.log-entry{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
-.log-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.bar.pb{background:linear-gradient(to top,var(--yellow),rgba(255,234,0,.3))}
+.bl{font-size:8px;color:var(--muted);font-family:'DM Mono',monospace}
+.log-e{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+.log-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0}
 .log-dot.pb{background:var(--yellow)}
-.log-txt{flex:1;font-size:13px}
-.log-sub{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace}
+.log-txt{flex:1;font-size:12px}
 .log-time{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)}
 
-/* =========== CURRICULUM =========== */
-.phase-block{margin-bottom:20px}
+/* ========== CURRICULUM ========== */
+.phase-b{margin-bottom:18px}
 .phase-hdr{display:flex;align-items:center;gap:12px;margin-bottom:10px;padding:0 16px}
-.phase-num{font-family:'Bebas Neue',sans-serif;font-size:44px;line-height:1;color:var(--border);min-width:44px;transition:color .3s}
-.phase-num.active{color:var(--accent)}
-.phase-num.done{color:var(--green)}
-.phase-name-txt{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;margin-bottom:1px}
-.phase-sub-txt{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace}
-.drill-card{background:var(--card);border:1px solid var(--border);border-radius:12px;margin:0 16px 8px;overflow:hidden;cursor:pointer;transition:border-color .2s}
-.drill-card.open{border-color:rgba(0,229,255,.3)}
-.drill-hdr{display:flex;align-items:center;gap:12px;padding:14px}
-.drill-emo{font-size:22px;flex-shrink:0}
-.drill-info{flex:1}
-.drill-name{font-size:14px;font-weight:600;margin-bottom:3px}
-.drill-tags{display:flex;gap:6px;flex-wrap:wrap}
-.drill-tag{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface);border-radius:4px;padding:2px 6px;border:1px solid var(--border)}
+.phase-n{font-family:'Bebas Neue',sans-serif;font-size:42px;line-height:1;color:var(--border);min-width:44px;transition:color .3s}
+.phase-n.active{color:var(--accent)}
+.phase-n.done{color:var(--green)}
+.drill-c{background:var(--card);border:1px solid var(--border);border-radius:12px;margin:0 16px 8px;overflow:hidden;cursor:pointer}
+.drill-c.open{border-color:rgba(0,229,255,.3)}
+.drill-h{display:flex;align-items:center;gap:12px;padding:14px}
+.drill-em{font-size:22px;flex-shrink:0}
+.drill-inf{flex:1}
+.drill-nm{font-size:14px;font-weight:600;margin-bottom:3px}
+.drill-tgs{display:flex;gap:5px;flex-wrap:wrap}
+.drill-tg{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface);border-radius:4px;padding:2px 6px;border:1px solid var(--border)}
 .drill-chk{width:26px;height:26px;border:2px solid var(--border);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all .2s}
-.drill-card.mastered .drill-chk{background:var(--green);border-color:var(--green);color:#000}
-.drill-detail{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.16,1,.3,1);border-top:0 solid var(--border)}
-.drill-card.open .drill-detail{max-height:500px;border-top-width:1px}
-.drill-detail-inner{padding:14px}
-.drill-desc{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:12px}
-.drill-cues{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
-.drill-cue{display:flex;align-items:flex-start;gap:8px;font-size:12px}
+.drill-c.mastered .drill-chk{background:var(--green);border-color:var(--green);color:#000}
+.drill-det{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.16,1,.3,1);border-top:0 solid var(--border)}
+.drill-c.open .drill-det{max-height:500px;border-top-width:1px}
+.drill-di{padding:14px}
+.drill-ds{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:12px}
+.drill-cues{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.drill-cue{display:flex;gap:8px;font-size:12px}
 .drill-cue::before{content:'→';color:var(--accent);flex-shrink:0;font-weight:700}
-.err-box{background:rgba(255,23,68,.05);border:1px solid rgba(255,23,68,.15);border-radius:8px;padding:10px 12px;margin-bottom:10px}
-.err-title{font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace;margin-bottom:5px}
-.err-item{font-size:12px;color:var(--muted);margin-bottom:2px;padding-left:12px;position:relative}
-.err-item::before{content:'✗';position:absolute;left:0;color:var(--red);font-size:10px}
-.target-box{background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--muted)}
-.btn-mastered{width:100%;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.25);border-radius:8px;padding:10px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);cursor:pointer;transition:all .2s}
-.btn-mastered:active{background:rgba(0,229,255,.18)}
+.err-b{background:rgba(255,23,68,.05);border:1px solid rgba(255,23,68,.15);border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.err-t{font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace;margin-bottom:5px}
+.err-i{font-size:12px;color:var(--muted);margin-bottom:2px;padding-left:12px;position:relative}
+.err-i::before{content:'✗';position:absolute;left:0;color:var(--red);font-size:10px}
+.tgt-b{background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--muted)}
+.btn-mast{width:100%;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.25);border-radius:8px;padding:10px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);cursor:pointer}
 
-/* =========== AI COACH =========== */
+/* ========== AI COACH ========== */
 #s-coach{display:flex;flex-direction:column}
 .chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
 .msg{max-width:85%;animation:msgIn .3s ease}
 @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .msg.user{align-self:flex-end}
 .msg.ai{align-self:flex-start}
-.msg-bubble{padding:11px 14px;border-radius:14px;font-size:14px;line-height:1.6}
-.msg.user .msg-bubble{background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.25);color:var(--text);border-bottom-right-radius:4px}
-.msg.ai .msg-bubble{background:var(--card);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:4px}
+.msg-b{padding:11px 14px;border-radius:14px;font-size:14px;line-height:1.6}
+.msg.user .msg-b{background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.25);border-bottom-right-radius:4px}
+.msg.ai .msg-b{background:var(--card);border:1px solid var(--border);border-bottom-left-radius:4px}
 .msg-meta{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:3px;padding:0 4px}
 .msg.user .msg-meta{text-align:right}
-.typing-ind{display:flex;gap:4px;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:4px;width:fit-content}
-.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:typing 1.2s ease-in-out infinite}
-.typing-dot:nth-child(2){animation-delay:.2s}
-.typing-dot:nth-child(3){animation-delay:.4s}
-@keyframes typing{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
+.typing{display:flex;gap:4px;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:4px;width:fit-content}
+.td{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:typ 1.2s ease-in-out infinite}
+.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
+@keyframes typ{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
 .quick-qs{padding:8px 16px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;border-top:1px solid var(--border)}
 .quick-qs::-webkit-scrollbar{display:none}
-.quick-q{flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:6px 13px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .2s}
-.quick-q:active{border-color:var(--accent);color:var(--accent)}
-.chat-input-wrap{padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-end;background:var(--bg)}
-.chat-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;resize:none;min-height:42px;max-height:100px;line-height:1.4;transition:border-color .2s}
-.chat-input:focus{border-color:var(--accent)}
-.chat-input::placeholder{color:var(--muted)}
-.chat-send{width:42px;height:42px;border-radius:12px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:all .2s;color:#000;font-weight:700}
+.qq{flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap}
+.qq:active{border-color:var(--accent);color:var(--accent)}
+.chat-inp-wrap{padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-end;background:var(--bg)}
+.chat-inp{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;resize:none;min-height:42px;max-height:100px;line-height:1.4;transition:border-color .2s}
+.chat-inp:focus{border-color:var(--accent)}
+.chat-inp::placeholder{color:var(--muted)}
+.chat-send{width:42px;height:42px;border-radius:12px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:#000;font-weight:700;flex-shrink:0;transition:all .2s}
 .chat-send:active{transform:scale(.92)}
-.chat-send:disabled{opacity:.4}
 
 /* MODAL */
 .modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;align-items:flex-end;justify-content:center}
@@ -225,185 +248,200 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
 .pb-celeb{text-align:center;padding:10px 0 20px}
-.pb-trophy{font-size:72px;animation:tropBounce .6s ease}
-@keyframes tropBounce{0%{transform:scale(0) rotate(-20deg)}60%{transform:scale(1.2) rotate(5deg)}100%{transform:scale(1) rotate(0)}}
-.pb-title-modal{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:2px;color:var(--yellow);margin:10px 0 4px}
-.pb-time-big{font-family:'Bebas Neue',sans-serif;font-size:72px;color:var(--yellow);line-height:1;text-shadow:0 0 30px rgba(255,234,0,.4)}
-.pb-time-unit{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.pb-trophy{font-size:72px;animation:troph .6s ease}
+@keyframes troph{0%{transform:scale(0) rotate(-20deg)}60%{transform:scale(1.2) rotate(5deg)}100%{transform:scale(1) rotate(0)}}
+.pb-title-m{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:2px;color:var(--yellow);margin:10px 0 4px}
+.pb-big{font-family:'Bebas Neue',sans-serif;font-size:72px;color:var(--yellow);line-height:1;text-shadow:0 0 30px rgba(255,234,0,.4)}
+.pb-unit{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
 .btn-close-m{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;margin-top:16px}
+
+/* Manual timer */
+.manual-ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.92);z-index:18;display:none}
+.manual-ov.show{display:flex}
+.manual-big{font-family:'Bebas Neue',sans-serif;font-size:100px;color:var(--accent);line-height:1;text-shadow:0 0 30px rgba(0,229,255,.5)}
+.manual-sub{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:28px}
+.btn-hold{background:var(--green);color:#000;border:none;border-radius:50%;width:110px;height:110px;font-family:'Bebas Neue',sans-serif;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.2;box-shadow:0 0 30px rgba(0,230,118,.4);transition:all .2s}
+.btn-hold.holding{background:var(--red);box-shadow:0 0 30px rgba(255,23,68,.4)}
 </style>
 </head>
 <body>
 
-<!-- HOME -->
-<div class="screen active" id="s-home">
-  <div class="screen-header">
-    <div class="screen-title">STOJKA <span>LAB</span></div>
-    <div class="screen-sub" id="today-date-label">Načítám...</div>
-  </div>
-  <div class="content">
-    <div class="hero-card">
-      <div class="hero-greeting">Aktuální fáze</div>
-      <div class="hero-phase" id="hero-phase">Fáze 1 — U zdi</div>
-      <div class="progress-label"><span>Postup ke stojce</span><span id="hero-pct">0%</span></div>
-      <div class="progress-bar"><div class="progress-fill" id="hero-fill" style="width:0%"></div></div>
-      <div class="hero-stats">
-        <div class="hero-stat"><div class="hero-stat-value" id="st-pb">0s</div><div class="hero-stat-label">🏆 Rekord</div></div>
-        <div class="hero-stat"><div class="hero-stat-value" id="st-sess">0</div><div class="hero-stat-label">Tréninků</div></div>
-        <div class="hero-stat"><div class="hero-stat-value" id="st-str">0</div><div class="hero-stat-label">Streak 🔥</div></div>
-      </div>
-    </div>
-    <div class="section-label">Aktivita — 7 dní</div>
-    <div class="streak-row" id="streak-row"></div>
-    <div class="section-label" style="margin-top:16px">Dnešní plán</div>
-    <div id="today-plan"></div>
-    <button class="btn-main" onclick="showScreen('s-camera');startCamera()">📸 Spustit analýzu stojky</button>
-  </div>
-</div>
-
-<!-- CAMERA -->
-<div class="screen" id="s-camera" style="padding-bottom:0">
-  <div class="camera-container">
-    <video id="camera-video" playsinline muted></video>
-    <canvas id="pose-canvas"></canvas>
+<!-- ===== SCAN (MAIN SCREEN) ===== -->
+<div class="screen active" id="s-scan">
+  <div class="cam-wrap">
+    <video id="vid" playsinline muted></video>
+    <canvas id="cv"></canvas>
     <div class="vert-guide"></div>
 
-    <div id="cam-placeholder">
-      <div style="font-size:72px;margin-bottom:16px;opacity:.3">📷</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;margin-bottom:8px">Pose Detection</div>
-      <div style="font-size:14px;color:var(--muted);line-height:1.7;max-width:280px">Kamera analyzuje tvou stojku v reálném čase. Měří úhly těla a automaticky zaznamenává holdy.</div>
-      <button class="btn-allow" onclick="startCamera()">🎥 Spustit kameru</button>
-      <div style="font-size:12px;color:var(--muted);margin-top:12px">Nebo použij manuální timer →</div>
-      <button onclick="showManualTimer()" style="margin-top:8px;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:10px;padding:10px 20px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);cursor:pointer;letter-spacing:1px;text-transform:uppercase">⏱ Manuální timer</button>
+    <!-- Placeholder -->
+    <div id="cam-ph">
+      <div class="ph-icon">🤸</div>
+      <div class="ph-title">Stojka <span style="color:var(--accent)">Lab</span></div>
+      <div class="ph-sub">Kamera analyzuje tvou stojku v reálném čase. Automaticky měří holdy a vyhodnocuje linii těla.</div>
+      <button class="btn-primary" style="max-width:260px" onclick="startCamera()">📸 Spustit kameru</button>
+      <button class="btn-ghost" style="max-width:260px;margin-top:8px" onclick="showManualOv()">⏱ Manuální timer</button>
+      <div class="ph-loading" id="ph-loading" style="display:none">Načítám MoveNet model...</div>
     </div>
 
     <!-- Manual timer overlay -->
-    <div class="manual-timer-wrap" id="manual-timer" style="display:none">
-      <div class="manual-time-big" id="manual-time-display">0.0</div>
-      <div class="manual-sub" id="manual-timer-sub">Drž tlačítko během stojky</div>
-      <button class="btn-manual-hold" id="btn-manual"
+    <div class="manual-ov" id="manual-ov">
+      <div class="manual-big" id="manual-disp">0.0</div>
+      <div class="manual-sub" id="manual-sub">Drž tlačítko během stojky</div>
+      <button class="btn-hold" id="btn-hold"
         ontouchstart="manualStart(event)" ontouchend="manualStop(event)"
         onmousedown="manualStart(event)" onmouseup="manualStop(event)">
         DRŽÍ<br>ME
       </button>
-      <div style="margin-top:20px;display:flex;gap:12px">
-        <button onclick="hideManualTimer()" style="background:rgba(255,255,255,.1);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);cursor:pointer">← Zpět</button>
+      <div style="margin-top:20px;display:flex;gap:10px">
+        <button onclick="hideManualOv()" style="background:rgba(255,255,255,.1);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);cursor:pointer">← Zpět</button>
       </div>
     </div>
 
-    <div class="cam-overlay">
-      <div class="cam-top">
-        <div class="mode-badge"><div class="mode-dot"></div><span id="cam-mode-label">Pose Detection</span></div>
-        <div class="align-display">
-          <div class="align-score" id="align-score">—</div>
-          <div class="align-info">
-            <div class="align-label">Skóre linie těla</div>
-            <div class="feedback-txt" id="feedback-txt">Stoupni před kameru</div>
-          </div>
+    <!-- HUD top -->
+    <div class="cam-hud-top">
+      <div class="cam-mode"><div class="cam-mode-dot"></div><span id="cam-mode-txt">Čekám na kameru</span></div>
+      <div class="score-row">
+        <div class="score-big idle" id="score-big">—</div>
+        <div class="score-info">
+          <div class="score-label">Skóre linie těla</div>
+          <div class="score-fb" id="score-fb">Stoupni před kameru</div>
         </div>
-      </div>
-
-      <div class="hold-timer" id="hold-timer">
-        <div class="ring-wrap">
-          <svg width="150" height="150" viewBox="0 0 150 150">
-            <circle class="ring-bg" cx="75" cy="75" r="70" fill="none" stroke-width="6"/>
-            <circle class="ring-fill" id="ring-fill" cx="75" cy="75" r="70" fill="none" stroke-width="6"/>
-          </svg>
-          <div class="hold-secs" id="hold-secs">0</div>
-        </div>
-        <div class="hold-label">sekund holdu</div>
-        <div class="pb-flash" id="pb-flash">🏆 Nový rekord!</div>
-      </div>
-
-      <div class="angle-panel">
-        <div class="angle-box"><div class="angle-val" id="ang-body">—°</div><div class="angle-lbl">Tělo</div></div>
-        <div class="angle-box"><div class="angle-val" id="ang-sh">—°</div><div class="angle-lbl">Ramena</div></div>
-        <div class="angle-box"><div class="angle-val" id="ang-hip">—°</div><div class="angle-lbl">Boky</div></div>
-      </div>
-
-      <div class="countdown-ov" id="countdown-ov">
-        <div class="countdown-n" id="countdown-n">3</div>
       </div>
     </div>
 
+    <!-- Angle panel -->
+    <div class="angle-panel" id="angle-panel">
+      <div class="a-box" id="ab-sh"><div class="a-val" id="av-sh">—</div><div class="a-lbl">Ramena</div></div>
+      <div class="a-box" id="ab-hip"><div class="a-val" id="av-hip">—</div><div class="a-lbl">Boky</div></div>
+      <div class="a-box" id="ab-an"><div class="a-val" id="av-an">—</div><div class="a-lbl">Linie</div></div>
+    </div>
+
+    <!-- Hold ring -->
+    <div class="hold-ring-wrap" id="hold-ring">
+      <svg class="ring-svg" width="150" height="150" viewBox="0 0 150 150" style="transform:rotate(-90deg)">
+        <circle class="ring-bg" cx="75" cy="75" r="70" fill="none" stroke-width="6"/>
+        <circle class="ring-fill" id="ring-fill" cx="75" cy="75" r="70" fill="none" stroke-width="6"/>
+      </svg>
+      <div class="hold-num" id="hold-num">0</div>
+      <div class="hold-lbl">sekund holdu</div>
+      <div class="pb-badge" id="pb-badge">🏆 Nový rekord!</div>
+    </div>
+
+    <!-- Countdown -->
+    <div class="cdown-ov" id="cdown"><div class="cdown-n" id="cdown-n">3</div></div>
+
+    <!-- Bottom -->
     <div class="cam-bottom">
       <div class="cam-controls">
-        <button class="cam-btn cam-btn-sec" onclick="goHome()">← Zpět</button>
-        <button class="cam-btn cam-btn-primary" id="btn-detect" onclick="toggleDetect()">▶ Spustit</button>
-        <button class="cam-btn cam-btn-sec" onclick="flipCam()">🔄 Otočit</button>
+        <button class="cbtn cbtn-sec" onclick="showManualOv()">⏱</button>
+        <button class="cbtn cbtn-main" id="btn-detect" onclick="toggleDetect()">▶ Spustit</button>
+        <button class="cbtn cbtn-sec" onclick="flipCam()">🔄</button>
       </div>
-      <div class="sess-bar">
-        <div class="sess-stat"><div class="sess-val" id="s-att">0</div><div class="sess-lbl">Pokusy</div></div>
-        <div class="sess-stat"><div class="sess-val" id="s-best">0s</div><div class="sess-lbl">Nejlepší</div></div>
-        <div class="sess-stat"><div class="sess-val" id="s-total">0s</div><div class="sess-lbl">Celkem</div></div>
-        <div class="sess-stat"><div class="sess-val" id="s-avg">—</div><div class="sess-lbl">Průměr</div></div>
+      <div class="sess-row">
+        <div class="s-stat"><div class="s-val" id="ss-att">0</div><div class="s-lbl">Pokusy</div></div>
+        <div class="s-stat"><div class="s-val" id="ss-best">0s</div><div class="s-lbl">Nejlepší</div></div>
+        <div class="s-stat"><div class="s-val" id="ss-total">0s</div><div class="s-lbl">Celkem</div></div>
+        <div class="s-stat"><div class="s-val" id="ss-avg">—</div><div class="s-lbl">Průměr</div></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- PROGRESS -->
-<div class="screen" id="s-progress">
-  <div class="screen-header">
-    <div class="screen-title">PROGRES</div>
-    <div class="screen-sub">Statistiky a holdy</div>
+<!-- ===== DIAGNOSTIKA ===== -->
+<div class="screen" id="s-diag">
+  <div class="hdr">
+    <div class="hdr-title">DIAGNOSTIKA <span>POSTURY</span></div>
+    <div class="hdr-sub" id="diag-sub">Analýza omezení → personalizovaný warm-up</div>
   </div>
-  <div class="content">
+  <div class="pad">
+
+    <!-- Scan card -->
+    <div class="scan-card" id="scan-card">
+      <div class="scan-subtitle">Posturální sken</div>
+      <div class="scan-title">Zjisti svá omezení</div>
+      <div class="scan-desc">Postav se do základního stoje před kameru. Appka za 5 sekund analyzuje tvoje ramena, kyčle, kotníky a postaví ti personalizovaný warm-up.</div>
+      <button class="btn-primary" onclick="startDiagScan()">🔍 Spustit diagnostiku</button>
+    </div>
+
+    <!-- Skeleton preview (hidden until scan done) -->
+    <div id="skel-section" style="display:none">
+      <div class="sec-label">Výsledek skenu</div>
+      <div class="skeleton-preview">
+        <canvas id="diag-canvas"></canvas>
+        <div class="skel-label">Body scan ✓</div>
+      </div>
+    </div>
+
+    <!-- Diagnostic results (hidden until scan done) -->
+    <div id="diag-results-section" style="display:none">
+      <div class="sec-label">Analýza pohyblivosti</div>
+      <div class="diag-results" id="diag-results"></div>
+    </div>
+
+    <!-- Warmup plan -->
+    <div id="warmup-section" style="display:none">
+      <div class="sec-label" style="margin-top:4px">Personalizovaný warm-up</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5" id="warmup-intro"></div>
+      <div id="warmup-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      <button class="btn-primary" style="margin-top:12px" onclick="startDiagScan()">🔄 Nový sken</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== PROGRESS ===== -->
+<div class="screen" id="s-prog">
+  <div class="hdr"><div class="hdr-title">PROGRES</div><div class="hdr-sub">Statistiky a holdy</div></div>
+  <div class="pad">
     <div class="pb-grid">
-      <div class="pb-card hl"><div class="pb-val" id="pg-pb">0s</div><div class="pb-lbl">🏆 Osobní rekord</div></div>
-      <div class="pb-card"><div class="pb-val" id="pg-avg" style="color:var(--text)">0s</div><div class="pb-lbl">Průměr holdu</div></div>
-      <div class="pb-card"><div class="pb-val" id="pg-sess" style="font-size:30px;color:var(--green)">0</div><div class="pb-lbl">Tréninků</div></div>
-      <div class="pb-card"><div class="pb-val" id="pg-att" style="font-size:30px;color:var(--purple)">0</div><div class="pb-lbl">Pokusů</div></div>
+      <div class="pb-c hl"><div class="pb-v" id="pg-pb">0s</div><div class="pb-l">🏆 Rekord</div></div>
+      <div class="pb-c"><div class="pb-v" id="pg-avg" style="color:var(--text)">0s</div><div class="pb-l">Průměr</div></div>
+      <div class="pb-c"><div class="pb-v" id="pg-sess" style="font-size:28px;color:var(--green)">0</div><div class="pb-l">Tréninků</div></div>
+      <div class="pb-c"><div class="pb-v" id="pg-att" style="font-size:28px;color:var(--purple)">0</div><div class="pb-l">Pokusů</div></div>
     </div>
-    <div class="chart-card">
-      <div class="chart-title">Holdy — posledních 14 dní</div>
-      <div class="bars" id="bars-chart"><div style="width:100%;text-align:center;padding:20px 0;color:var(--muted);font-size:13px">Zatím žádné záznamy</div></div>
+    <div class="chart-wrap">
+      <div class="chart-title">Holdy — 14 dní</div>
+      <div class="bars" id="bars"></div>
     </div>
-    <div class="section-label">Historie</div>
-    <div id="history-log"><div style="text-align:center;padding:30px;color:var(--muted);font-size:13px">Žádné záznamy</div></div>
+    <div class="sec-label">Historie</div>
+    <div id="log-list"></div>
   </div>
 </div>
 
-<!-- CURRICULUM -->
+<!-- ===== CURRICULUM ===== -->
 <div class="screen" id="s-learn">
-  <div class="screen-header">
-    <div class="screen-title">CURRICULUM</div>
-    <div class="screen-sub">5 fází · 20 drillů · od nuly po volnou stojku</div>
-  </div>
-  <div id="curriculum-wrap" style="padding:16px 0 16px"></div>
+  <div class="hdr"><div class="hdr-title">CURRICULUM</div><div class="hdr-sub">5 fází · 20 drillů · od nuly po free stojku</div></div>
+  <div id="curr-wrap" style="padding:16px 0"></div>
 </div>
 
-<!-- AI COACH -->
+<!-- ===== AI COACH ===== -->
 <div class="screen" id="s-coach">
-  <div class="screen-header">
-    <div class="screen-title">AI <span>COACH</span></div>
-    <div class="screen-sub">Powered by Claude · Osobní trenér 24/7</div>
-  </div>
+  <div class="hdr"><div class="hdr-title">AI <span>COACH</span></div><div class="hdr-sub">Powered by Claude · Osobní trenér 24/7</div></div>
   <div class="chat-msgs" id="chat-msgs"></div>
   <div class="quick-qs">
-    <div class="quick-q" onclick="quickQ(this)">Jak na kickup?</div>
-    <div class="quick-q" onclick="quickQ(this)">Proč padám dopředu?</div>
-    <div class="quick-q" onclick="quickQ(this)">Bolí zápěstí, co dělat?</div>
-    <div class="quick-q" onclick="quickQ(this)">Kdy jít do další fáze?</div>
-    <div class="quick-q" onclick="quickQ(this)">Jak trénovat každý den?</div>
-    <div class="quick-q" onclick="quickQ(this)">Co je banana back?</div>
-    <div class="quick-q" onclick="quickQ(this)">Jak zlepšit linii těla?</div>
+    <div class="qq" onclick="quickQ(this)">Jak na kickup?</div>
+    <div class="qq" onclick="quickQ(this)">Proč padám dopředu?</div>
+    <div class="qq" onclick="quickQ(this)">Bolí zápěstí?</div>
+    <div class="qq" onclick="quickQ(this)">Kdy jít do další fáze?</div>
+    <div class="qq" onclick="quickQ(this)">Co je banana back?</div>
+    <div class="qq" onclick="quickQ(this)">Jak otevřít ramena?</div>
+    <div class="qq" onclick="quickQ(this)">Jak trénovat každý den?</div>
   </div>
-  <div class="chat-input-wrap">
-    <textarea class="chat-input" id="chat-input" placeholder="Napiš svůj dotaz..." rows="1"
+  <div class="chat-inp-wrap">
+    <textarea class="chat-inp" id="chat-inp" placeholder="Napiš dotaz..." rows="1"
       onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
-      oninput="autoResize(this)"></textarea>
+      oninput="autoR(this)"></textarea>
     <button class="chat-send" onclick="sendMsg()">↑</button>
   </div>
 </div>
 
 <!-- BOTTOM NAV -->
-<nav class="bottom-nav">
-  <div class="nav-item active" onclick="showScreen('s-home')"><div class="nav-icon">🏠</div><div class="nav-label">Domů</div></div>
-  <div class="nav-item" onclick="showScreen('s-camera');startCamera()"><div class="nav-icon">📸</div><div class="nav-label">Trénink</div></div>
-  <div class="nav-item" onclick="showScreen('s-progress');renderProgress()"><div class="nav-icon">📈</div><div class="nav-label">Progres</div></div>
-  <div class="nav-item" onclick="showScreen('s-learn')"><div class="nav-icon">📚</div><div class="nav-label">Drilly</div></div>
-  <div class="nav-item" onclick="showScreen('s-coach')"><div class="nav-icon">🤖</div><div class="nav-label">Trenér</div></div>
+<nav class="nav">
+  <div class="ni active" onclick="showScr('s-scan');startCamera()"><div class="ni-icon">📸</div><div class="ni-label">Trénink</div></div>
+  <div class="ni" onclick="showScr('s-diag')"><div class="ni-icon">🔍</div><div class="ni-label">Diagnostika</div></div>
+  <div class="ni" onclick="showScr('s-prog');renderProg()"><div class="ni-icon">📈</div><div class="ni-label">Progres</div></div>
+  <div class="ni" onclick="showScr('s-learn')"><div class="ni-icon">📚</div><div class="ni-label">Drilly</div></div>
+  <div class="ni" onclick="showScr('s-coach')"><div class="ni-icon">🤖</div><div class="ni-label">Trenér</div></div>
 </nav>
 
 <!-- MODAL -->
@@ -416,697 +454,1165 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <script>
 // ============================================================
-// CURRICULUM DATA
-// ============================================================
-const CURRICULUM=[
-  {name:"Fáze 1 — U zdi",sub:"Základní síla, scapular control, první kickupy",drills:[
-    {id:"f1d1",emoji:"🧱",name:"Wall Plank Hold",tags:["3×30–60s","U zdi","Každý den"],
-     desc:"Předloktí na zemi, nohy opřené o zeď v téměř vertikální poloze. Celé tělo jako jeden blok — aktivní core, stažené hýždě, push skrz ramena.",
-     cues:["Tlač zeď aktivně — ramena od uší","Rib tuck — stáhni žebra dolů","Squeeze glutes — zmáčkni hýždě jako orech","Deprese lopatek — ramena dolů, ne k uším"],
-     errors:["Banana back — záda se prohýbají","Pasivní ramena — visíš na kloubech","Hlava v záklonu — neutrální krk"],target:"3×60s komfortně"},
-    {id:"f1d2",emoji:"🦶",name:"Kick-up Practice",tags:["15 pokusů","U zdi","Kontrola"],
-     desc:"Nácvik odrázu a hledání balančního bodu u zdi. Silná noha jako kyvadlo — cíl je najít vertikálu opakovaně, ne ji udržet.",
-     cues:["Ruce 20cm od zdi","Silná noha se odráží, slabá kope nahoru","Nepřeskakuj přes vertikálu","Aktivní ramena od prvního momentu"],
-     errors:["Skákáš přes — chybí kontrola","Ruce příliš blízko zdi","Asymetrie nohou — srovnej"],target:"10 kontrolovaných kickupů za sebou"},
-    {id:"f1d3",emoji:"🚶",name:"Wall Walk",tags:["5–8 opakování","Pomalé","3–4s každý krok"],
-     desc:"Z push-up pozice kráčíš nohama po zdi výše a výše. Trénuje přechod horizontála–vertikála a aktivaci ramenního pletence.",
-     cues:["Každý krok = push skrz ramena","Drž core napnutý celou dobu","Nenos váhu do zdi — drž ji v rukou"],
-     errors:["Spěcháš nahoru","Uvolňuješ core uprostřed","Prohýbáš záda"],target:"5× pomalý walk bez odpočinku"},
-    {id:"f1d4",emoji:"⚖️",name:"Chest-to-Wall Hold",tags:["5×10–30s","Hrudník ke zdi","Flat back"],
-     desc:"Stojka hrudníkem ke zdi — nejtěžší varianta pro linii těla. Nohy se dotýkají zdi minimálně. Trénuje skutečnou vertikálu.",
-     cues:["Dosáhni patami ke zdi, ne hýžděmi","Flat back — aktivuj core silně","Ramena v protrakci a depresi"],
-     errors:["Banana back — prohnutí místo přímé linie","Příliš blízko zdi"],target:"5×20s s flat back"}
-  ]},
-  {name:"Fáze 2 — Balans",sub:"Finger pressure, první volné sekundy, tvar těla",drills:[
-    {id:"f2d1",emoji:"🖐️",name:"Finger Pressure Control",tags:["U zdi","5×30s","Vědomá praxe"],
-     desc:"V chest-to-wall stojce přenášíš váhu z dlaně na prsty a zpět. Tlakem prstů koriduješ nad/pod vertikálu — základ všeho balansu.",
-     cues:["Padáš dopředu = zmáčkni prsty","Padáš dozadu = tlač dlaní","Wrist flexion jako brzda","Prsty vždy aktivní"],
-     errors:["Box hands — prsty nejsou aktivní","Reaguješ celým tělem místo zápěstím"],target:"Vědomé ovládání v obou směrech"},
-    {id:"f2d2",emoji:"🎯",name:"Kickup to Balance",tags:["20 pokusů","Cíl: 1–3s volně","Každý den"],
-     desc:"Kickup s cílem najít balanční bod a vydržet 1–3 sekundy volně. Počet pokusů je důležitější než délka každého.",
-     cues:["Hledej vertikálu, nekopej přes ni","Micro pohyby zápěstí a prstů","Dýchej — uvolněné svaly balancují lépe"],
-     errors:["Kickuješ příliš silně","Tuhneš celým tělem","Málo pokusů"],target:"5 holdů >3s v jednom setu"},
-    {id:"f2d3",emoji:"🌀",name:"Straddle Balance",tags:["10s hold","10 pokusů","Wider base"],
-     desc:"Stojka s rozkročenými nohami. Nižší těžiště = jednodušší balans. Skvělý přechod mezi wall work a volnou stojkou.",
-     cues:["Čím širší nohy, tím stabilnější","Stejná aktivita ramen jako ve straight","Plynulý přechod straddle→straight"],
-     errors:["Nohy ne dost wide","Pouštíš ramena při přechodu"],target:"3×10s straddle volně"},
-    {id:"f2d4",emoji:"🔄",name:"Shape Shifting",tags:["Tuck→Pike→Straight","10 opakování","U zdi"],
-     desc:"V stojce u zdi přecházíš mezi tvary těla: tuck, pike, straight. Trénuje kontrolu těžiště a napětí trupu při pohybu.",
-     cues:["Každý přechod = nové těžiště","Core kompenzuje okamžitě","Tuck je záchrana"],
-     errors:["Ztráta kontroly při přechodu","Nesměřuješ přes straight"],target:"Plynulý přechod tuck–straight–tuck"}
-  ]},
-  {name:"Fáze 3 — Free Stojka",sub:"Volná stojka, prodloužení holdu, konzistence",drills:[
-    {id:"f3d1",emoji:"🚀",name:"Free Handstand Attempts",tags:["20–30 pokusů","Timer aktivní","Log každý hold"],
-     desc:"Primární praxe volné stojky. Kickup → balans → hold. Každý pokus se loguje. Konzistence je klíč — 15+ pokusů za trénink.",
-     cues:["Kvalita kickupu = kvalita holdu","Najdi svůj rytmus","Po pádu hned znovu"],
-     errors:["Málo pokusů","Tréninky příliš daleko od sebe"],target:"10s hold konzistentně"},
-    {id:"f3d2",emoji:"⏱️",name:"Hold Extension Protocol",tags:["5×max hold","3min odpočinek","Každé 3 dny"],
-     desc:"Cílený protokol na prodlužování holdu. 5 max pokusů s plným odpočinkem. Ne denně — nervový systém potřebuje regeneraci.",
-     cues:["Každý pokus = plné nasazení","Zaznamenej čas — data jsou tvůj trenér"],
-     errors:["Příliš krátký odpočinek","Pokračuješ unavený"],target:"PB každé 2 týdny"},
-    {id:"f3d3",emoji:"🎪",name:"Tuck to Straight",tags:["10 opakování","U zdi nebo volně","Kontrolovaně"],
-     desc:"Z tuck holdu pomalu extenduj nohy do straight a zpět. Jeden z nejlepších drillů pro kontrolu těžiště a trénink napětí trupu.",
-     cues:["Pomalá extenze — 3s nahoru","Core kompenzuje vše","Ramena zůstávají fixed"],
-     errors:["Setrvačnost — není kontrola","Ztráta vertikály ramen"],target:"5× tuck–straight bez pádu"}
-  ]},
-  {name:"Fáze 4 — Kontrola",sub:"Tuck press, walks, one arm příprava",drills:[
-    {id:"f4d1",emoji:"💎",name:"Tuck Press Handstand",tags:["5×3 opakování","Pomalé tempo","Síla not setrvačnost"],
-     desc:"Z tuck pozice pomalu extenduj nohy do straight stojky. Extrémně silový cvik pro kontrolu těžiště při pohybu nohou.",
-     cues:["2s extenze, 2s flexe","Core kompenzuje celou dobu","Ramena fixed — jen kyčle a kolena"],
-     errors:["Rychlý pohyb — setrvačnost","Ztráta vertikály ramen"],target:"3×5 tuck press bez pádu"},
-    {id:"f4d2",emoji:"🚶",name:"Handstand Walking",tags:["10 kroků cíl","Každý trénink","Rovný povrch"],
-     desc:"Chůze na rukou — každý krok je miniaturní balancování. Trénuje dynamický balans a přesun váhy v pohybu.",
-     cues:["Malé kroky — 5–10cm","Každý krok = nová stojka","Pohled mírně dopředu"],
-     errors:["Příliš velké kroky","Povolíš core při přenosu"],target:"10 kroků plynule"},
-    {id:"f4d3",emoji:"🦅",name:"One Arm Weight Shift",tags:["5× každá strana","Postupný přesun","U zdi nebo volně"],
-     desc:"Přesun 60–80% váhy na jednu ruku. Příprava na OAH. Volná ruka se lehce dotýká zdi nebo jen plave vedle těla.",
-     cues:["Pomalý přesun — ne skok","Kompenzuj celým tělem","Hold min. 2s každá strana"],
-     errors:["Příliš rychlý přesun","Nerovnováha v ramenním pletenci"],target:"5s 80% váhy na jedné ruce"}
-  ]},
-  {name:"Fáze 5 — Pokročilé",sub:"Press HS, one arm, dynamické prvky",drills:[
-    {id:"f5d1",emoji:"⚡",name:"Straddle Press Handstand",tags:["5 pokusů","Ze stoje silou","Hip flexor síla"],
-     desc:"Press handstand ze straddle — vstup do stojky silou bez kickupu. Jeden z nejnáročnějších pohybů. Vyžaduje extrémní hip flexor sílu.",
-     cues:["Lean forward agresivně","Straddle co nejširší","Slow and controlled"],
-     errors:["Nedostatečný lean forward","Nohy příliš blízko sebe"],target:"1 čistý press handstand"},
-    {id:"f5d2",emoji:"✋",name:"One Arm Handstand",tags:["10–15 pokusů","Volná ruka k tělu","S asistencí"],
-     desc:"Pokusy o OAH — vrchol statické akrobacie. Volná ruka k tělu nebo za záda. Vyžaduje roky přípravy. Každá sekunda se počítá.",
-     cues:["Pomalý přesun váhy","Celé tělo rotuje mírně k volné ruce","Finger pressure crucial"],
-     errors:["Příliš rychlý přesun","Rotace mimo kontrolu"],target:"2s one arm volně"},
-    {id:"f5d3",emoji:"🌊",name:"Handstand Push-ups",tags:["5×3 opakování","U zdi","Shoulder strength"],
-     desc:"HSPU u zdi — jedno z nejsilnějších cvičení pro ramenní pletence. Klíčový cvik pro overhead sílu a stabilitu v stojce.",
-     cues:["Kontrolovaný sestup — 3s","Plný lockout nahoře","Ramena zůstávají aktivní po celou dobu"],
-     errors:["Nedojdeš dolů — nekompletní ROM","Asymetrický tlak"],target:"5×5 HSPU u zdi"}
-  ]}
-];
-
-const TODAY_ITEMS=[
-  {type:'warmup',emoji:'🔥',name:'Warm-up — Zápěstí & Ramena',detail:'5 min · wrist CARs, shoulder circles, scapular push-ups'},
-  {type:'main',emoji:'🤸',name:'Hlavní praxe stojky',detail:'15–20 min · kickupy, holdy, pose detection'},
-  {type:'drill',emoji:'💪',name:'Drilly aktuální fáze',detail:'10 min · dle curriculum, 3 hlavní drilly'},
-  {type:'strength',emoji:'⚡',name:'Conditioning',detail:'5 min · pike push-ups, core, wrist strength'}
-];
-
-// ============================================================
 // STATE
 // ============================================================
-let ST=JSON.parse(localStorage.getItem('stojka-lab')||'null')||{
-  phase:0,drillsDone:{},sessions:0,attempts:0,pb:0,
-  holds:[],streak:[],log:[],todayDone:{}
+let ST = JSON.parse(localStorage.getItem('stojka-lab2') || 'null') || {
+  phase: 0, drillsDone: {}, sessions: 0, attempts: 0, pb: 0,
+  holds: [], streak: [], log: [], lastDiag: null, warmupDone: {}
 };
-function save(){localStorage.setItem('stojka-lab',JSON.stringify(ST))}
+function save() { localStorage.setItem('stojka-lab2', JSON.stringify(ST)); }
 
 // ============================================================
-// CAMERA & DETECTION — no external libs, works everywhere
+// NAVIGATION
 // ============================================================
-let stream=null,camFacing='user',detecting=false;
-let holdActive=false,holdStart=null,holdSecs=0,holdInt=null;
-let sessHolds=[],sessBest=0,sessTotal=0;
-let detectRAF=null;
-let prevPixels=null; // for motion detection
-let motionHistory=[]; // rolling motion scores
-let stillFrames=0,movingFrames=0;
-let deviceGamma=0,deviceBeta=0; // gyroscope angles
+function showScr(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const map = { 's-scan': 0, 's-diag': 1, 's-prog': 2, 's-learn': 3, 's-coach': 4 };
+  if (map[id] !== undefined) document.querySelectorAll('.ni')[map[id]].classList.add('active');
+}
 
-// Device orientation (gyro) for tilt detection
-function initGyro(){
-  if(typeof DeviceOrientationEvent==='undefined') return;
-  // iOS 13+ requires permission
-  if(typeof DeviceOrientationEvent.requestPermission==='function'){
-    // Will be called on user gesture
-  } else {
-    window.addEventListener('deviceorientation', e=>{
-      deviceBeta = e.beta||0;   // front-back tilt (-180 to 180)
-      deviceGamma = e.gamma||0; // left-right tilt (-90 to 90)
+// ============================================================
+// CAMERA & MOVENET POSE DETECTION
+// ============================================================
+let vidEl, cvEl, ctx, stream, camFacing = 'user';
+let detector = null, modelLoading = false, modelReady = false;
+let detecting = false, rafId = null;
+let holdActive = false, holdStart = null, holdSecs = 0, holdInt = null;
+let sessHolds = [], sessBest = 0, sessTotal = 0;
+let prevLandmarks = null;
+
+// Smoothing buffer for landmarks
+let lmBuffer = [];
+const SMOOTH_N = 5;
+
+async function startCamera() {
+  vidEl = document.getElementById('vid');
+  cvEl = document.getElementById('cv');
+  ctx = cvEl.getContext('2d');
+
+  const ph = document.getElementById('cam-ph');
+  const loading = document.getElementById('ph-loading');
+
+  try {
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: camFacing === 'user' ? 'user' : 'environment', width: { ideal: 640 }, height: { ideal: 480 } }
     });
-  }
-}
-
-async function requestGyro(){
-  if(typeof DeviceOrientationEvent!=='undefined' &&
-     typeof DeviceOrientationEvent.requestPermission==='function'){
-    try{
-      const perm = await DeviceOrientationEvent.requestPermission();
-      if(perm==='granted'){
-        window.addEventListener('deviceorientation', e=>{
-          deviceBeta=e.beta||0;
-          deviceGamma=e.gamma||0;
-        });
-      }
-    }catch(e){}
-  }
-}
-
-async function initCamera(){
-  const ph=document.getElementById('cam-placeholder');
-  if(ph&&ph.style.display!=='none') startCamera();
-}
-
-async function startCamera(){
-  const ph=document.getElementById('cam-placeholder');
-  try{
-    if(stream) stream.getTracks().forEach(t=>t.stop());
-    stream=await navigator.mediaDevices.getUserMedia({
-      video:{facingMode:camFacing==='user'?'user':'environment',width:{ideal:640},height:{ideal:480}}
+    vidEl.srcObject = stream;
+    await vidEl.play();
+    ph.style.display = 'none';
+    vidEl.addEventListener('loadedmetadata', () => {
+      cvEl.width = vidEl.videoWidth || 640;
+      cvEl.height = vidEl.videoHeight || 480;
     });
-    const vid=document.getElementById('camera-video');
-    vid.srcObject=stream;
-    await vid.play();
-    ph.style.display='none';
-    const cv=document.getElementById('pose-canvas');
-    vid.addEventListener('loadedmetadata',()=>{
-      cv.width=vid.videoWidth||640;
-      cv.height=vid.videoHeight||480;
-    });
-    initGyro();
-    requestGyro();
-    document.getElementById('cam-mode-label').textContent='Analýza pohybu ✓';
-  }catch(e){
-    ph.innerHTML=`
-      <div style="font-size:48px;margin-bottom:16px;opacity:.3">🚫</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin-bottom:8px">Kamera nedostupná</div>
-      <div style="font-size:13px;color:var(--muted);line-height:1.6;max-width:260px">Zkontroluj oprávnění v nastavení prohlížeče, nebo použij manuální timer.</div>
-      <button onclick="showManualTimer()" style="margin-top:16px;background:var(--accent);color:#000;border:none;border-radius:10px;padding:12px 24px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;cursor:pointer">⏱ Manuální timer</button>`;
+    document.getElementById('cam-mode-txt').textContent = 'Kamera aktivní';
+
+    // Load model
+    if (!modelReady && !modelLoading) {
+      loading.style.display = 'block';
+      await loadModel();
+      loading.style.display = 'none';
+    }
+  } catch (e) {
+    ph.innerHTML = `
+      <div class="ph-icon">🚫</div>
+      <div class="ph-title" style="font-size:22px">Kamera nedostupná</div>
+      <div class="ph-sub">Zkontroluj oprávnění prohlížeče.</div>
+      <button class="btn-ghost" style="max-width:220px;margin-top:8px" onclick="showManualOv()">⏱ Manuální timer</button>`;
   }
 }
 
-// ---- MOTION DETECTION via pixel diff ----
-function analyzeFrame(){
-  const vid=document.getElementById('camera-video');
-  const cv=document.getElementById('pose-canvas');
-  if(!vid||vid.readyState<2||!detecting){detectRAF=requestAnimationFrame(analyzeFrame);return;}
-
-  const W=cv.width||320, H=cv.height||240;
-  // Use small offscreen canvas for speed
-  const off=document.createElement('canvas');
-  off.width=80;off.height=60;
-  const octx=off.getContext('2d');
-  octx.drawImage(vid,0,0,80,60);
-  const curr=octx.getImageData(0,0,80,60).data;
-
-  // Draw video to main canvas (mirrored)
-  const ctx=cv.getContext('2d');
-  ctx.clearRect(0,0,W,H);
-  ctx.save();
-  ctx.scale(-1,1);
-  ctx.drawImage(vid,-W,0,W,H);
-  ctx.restore();
-
-  let motionScore=0;
-  if(prevPixels){
-    let diff=0,count=0;
-    for(let i=0;i<curr.length;i+=4){
-      const dr=Math.abs(curr[i]-prevPixels[i]);
-      const dg=Math.abs(curr[i+1]-prevPixels[i+1]);
-      const db=Math.abs(curr[i+2]-prevPixels[i+2]);
-      diff+=(dr+dg+db)/3;
-      count++;
+async function loadModel() {
+  modelLoading = true;
+  try {
+    // Try MoveNet Thunder (best accuracy)
+    detector = await poseDetection.createDetector(
+      poseDetection.SupportedModels.MoveNet,
+      { modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER }
+    );
+    modelReady = true;
+    document.getElementById('cam-mode-txt').textContent = 'MoveNet ✓ — připraven';
+  } catch (e) {
+    // Fallback to Lightning (faster, lighter)
+    try {
+      detector = await poseDetection.createDetector(
+        poseDetection.SupportedModels.MoveNet,
+        { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING }
+      );
+      modelReady = true;
+      document.getElementById('cam-mode-txt').textContent = 'MoveNet Lightning ✓';
+    } catch (e2) {
+      // Fallback to motion detection
+      document.getElementById('cam-mode-txt').textContent = 'Pohybová detekce';
+      startMotionFallback();
     }
-    motionScore=diff/count; // 0-255, >8 = moving, <4 = still
   }
-  prevPixels=new Uint8ClampedArray(curr);
-
-  // Rolling average (last 15 frames ≈ 0.5s)
-  motionHistory.push(motionScore);
-  if(motionHistory.length>15) motionHistory.shift();
-  const avgMotion=motionHistory.reduce((a,b)=>a+b,0)/motionHistory.length;
-
-  // Determine if STILL (holding handstand) vs MOVING (between attempts)
-  const isStill=avgMotion<6;
-
-  // Use device orientation if available to detect if phone is portrait/landscape
-  // Phone on ground watching someone = beta ~0 (flat), gamma ~0
-  // We just use motion + time-based detection
-  analyzeStability(isStill, avgMotion, motionScore);
-
-  // Draw motion indicator on canvas
-  drawMotionOverlay(ctx, W, H, avgMotion, isStill);
-
-  detectRAF=requestAnimationFrame(analyzeFrame);
+  modelLoading = false;
 }
 
-let stableStart=null, stableConfirmed=false;
-let unstableStart=null;
-const STABLE_CONFIRM_MS=800; // must be still for 0.8s before hold counts
-const UNSTABLE_CONFIRM_MS=600; // must be moving for 0.6s before hold stops
+// MoveNet keypoint indices
+// 0:nose 5:lSh 6:rSh 7:lElbow 8:rElbow 9:lWrist 10:rWrist
+// 11:lHip 12:rHip 13:lKnee 14:rKnee 15:lAnkle 16:rAnkle
 
-function analyzeStability(isStill, avgMotion, rawMotion){
-  const now=Date.now();
+const CONNECTIONS = [
+  [5,6],[5,7],[7,9],[6,8],[8,10], // arms
+  [5,11],[6,12],[11,12],           // torso
+  [11,13],[13,15],[12,14],[14,16]  // legs
+];
 
-  if(isStill){
-    unstableStart=null;
-    if(!stableStart) stableStart=now;
-    const stableFor=(now-stableStart)/1000;
+const KP_COLORS = {
+  5:'#00e5ff',6:'#00e5ff', // shoulders
+  9:'#00e676',10:'#00e676', // wrists
+  11:'#ff6b35',12:'#ff6b35', // hips
+  15:'#d500f9',16:'#d500f9', // ankles
+};
 
-    if(stableFor>=STABLE_CONFIRM_MS/1000 && !holdActive){
-      startHold();
-      stableConfirmed=true;
-    }
+async function detectLoop() {
+  if (!detecting || !modelReady || !vidEl || vidEl.readyState < 2) {
+    if (detecting) rafId = requestAnimationFrame(detectLoop);
+    return;
+  }
 
-    // Score based on how still (lower motion = better score)
-    const score=Math.round(Math.max(60, Math.min(99, 99-(avgMotion*8))));
-    let fb='';
-    if(score>=90) fb='🎯 Perfektní hold — drž!';
-    else if(score>=75) fb='✨ Výborně — drž pozici!';
-    else fb='⚡ Téměř stabil — koriguj';
+  try {
+    cvEl.width = vidEl.videoWidth;
+    cvEl.height = vidEl.videoHeight;
+    const poses = await detector.estimatePoses(vidEl);
 
-    setScore(score, fb);
-    updateAnglesFromGyro();
+    ctx.clearRect(0, 0, cvEl.width, cvEl.height);
+    // Draw video mirrored
+    ctx.save();
+    ctx.scale(-1, 1);
+    ctx.drawImage(vidEl, -cvEl.width, 0, cvEl.width, cvEl.height);
+    ctx.restore();
 
-  } else {
-    stableStart=null;
-    stableConfirmed=false;
+    if (poses && poses.length > 0) {
+      const kps = poses[0].keypoints;
+      // Add to smoothing buffer
+      lmBuffer.push(kps);
+      if (lmBuffer.length > SMOOTH_N) lmBuffer.shift();
+      const smoothed = smoothKeypoints(lmBuffer);
 
-    if(!unstableStart) unstableStart=now;
-    const movingFor=(now-unstableStart)/1000;
-
-    if(movingFor>=UNSTABLE_CONFIRM_MS/1000 && holdActive){
-      stopHold();
-    }
-
-    if(avgMotion>20){
-      setScore(0,'🤸 Pohyb detekován — připravuješ se?');
+      drawSkeleton(smoothed, cvEl.width, cvEl.height);
+      analyzeHandstand(smoothed, cvEl.width, cvEl.height);
     } else {
-      setScore(0,'⏳ Stoupni do stojky a znehybni');
+      setScoreUI(0, 'Detekuji postavu...', 'idle');
     }
-  }
+  } catch (e) {}
+
+  if (detecting) rafId = requestAnimationFrame(detectLoop);
 }
 
-function updateAnglesFromGyro(){
-  // Show gyro angles if available, else show motion score
-  const beta=Math.round(deviceBeta);
-  const gamma=Math.round(deviceGamma);
-  if(beta!==0||gamma!==0){
-    document.getElementById('ang-body').textContent=beta+'°';
-    document.getElementById('ang-sh').textContent=gamma+'°';
-    document.getElementById('ang-hip').textContent=Math.round(Math.sqrt(beta*beta+gamma*gamma))+'°';
+function smoothKeypoints(buffer) {
+  if (buffer.length === 1) return buffer[0];
+  const n = buffer.length;
+  return buffer[0].map((kp, i) => ({
+    x: buffer.reduce((s, b) => s + b[i].x, 0) / n,
+    y: buffer.reduce((s, b) => s + b[i].y, 0) / n,
+    score: buffer.reduce((s, b) => s + b[i].score, 0) / n,
+    name: kp.name
+  }));
+}
+
+function drawSkeleton(kps, W, H) {
+  // Mirror x coordinate for mirrored video
+  const mx = kp => W - kp.x;
+  const my = kp => kp.y;
+
+  // Draw connections
+  CONNECTIONS.forEach(([a, b]) => {
+    const ka = kps[a], kb = kps[b];
+    if (ka.score < 0.3 || kb.score < 0.3) return;
+    ctx.beginPath();
+    ctx.moveTo(mx(ka), my(ka));
+    ctx.lineTo(mx(kb), my(kb));
+    ctx.strokeStyle = 'rgba(0,229,255,0.5)';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  });
+
+  // Draw keypoints
+  [5,6,9,10,11,12,15,16].forEach(i => {
+    const kp = kps[i];
+    if (kp.score < 0.3) return;
+    ctx.beginPath();
+    ctx.arc(mx(kp), my(kp), 8, 0, Math.PI * 2);
+    ctx.fillStyle = KP_COLORS[i] || '#00e5ff';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Labels for key points
+    const labels = {5:'L.Ram',6:'P.Ram',9:'L.Záp',10:'P.Záp',11:'L.Kyč',12:'P.Kyč',15:'L.Kot',16:'P.Kot'};
+    if (labels[i]) {
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.font = 'bold 9px DM Mono, monospace';
+      ctx.fillText(labels[i], mx(kp) + 10, my(kp) + 3);
+    }
+  });
+}
+
+function analyzeHandstand(kps, W, H) {
+  const conf = i => kps[i] && kps[i].score > 0.3;
+  if (!conf(5) || !conf(6) || !conf(11) || !conf(12)) {
+    setScoreUI(0, 'Detekuji postavu...', 'idle');
+    return;
+  }
+
+  const lSh = kps[5], rSh = kps[6];
+  const lHip = kps[11], rHip = kps[12];
+  const lAnk = conf(15) ? kps[15] : null;
+  const rAnk = conf(16) ? kps[16] : null;
+  const lWr = conf(9) ? kps[9] : null;
+  const rWr = conf(10) ? kps[10] : null;
+
+  const midSh = { x: (lSh.x + rSh.x) / 2, y: (lSh.y + rSh.y) / 2 };
+  const midHip = { x: (lHip.x + rHip.x) / 2, y: (lHip.y + rHip.y) / 2 };
+
+  // Check if inverted — in handstand, hips should be above shoulders
+  // (y is inverted in screen coords — smaller y = higher)
+  const isHandstand = midHip.y < midSh.y - 50;
+
+  let score = 0, fb = '', scoreClass = 'idle';
+
+  if (isHandstand) {
+    // === HANDSTAND ANALYSIS ===
+    const midAnk = lAnk && rAnk ? { x: (lAnk.x + rAnk.x) / 2, y: (lAnk.y + rAnk.y) / 2 } : null;
+    const midWr = lWr && rWr ? { x: (lWr.x + rWr.x) / 2, y: (lWr.y + rWr.y) / 2 } : null;
+
+    // Body line deviation from vertical
+    // In handstand: wrists at bottom, ankles at top
+    let lineDeviation = 0;
+    if (midWr && midAnk) {
+      // angle of wrist→ankle from vertical
+      const dx = midAnk.x - midWr.x;
+      const dy = midWr.y - midAnk.y; // inverted y
+      lineDeviation = Math.abs(Math.atan2(dx, dy) * (180 / Math.PI));
+    } else {
+      // fallback: shoulder to hip
+      const dx = midHip.x - midSh.x;
+      const dy = midSh.y - midHip.y;
+      lineDeviation = Math.abs(Math.atan2(dx, dy) * (180 / Math.PI));
+    }
+
+    // Shoulder alignment (should be level)
+    const shTilt = Math.abs(Math.atan2(rSh.y - lSh.y, rSh.x - lSh.x) * (180 / Math.PI));
+    // Hip alignment
+    const hipTilt = Math.abs(Math.atan2(rHip.y - lHip.y, rHip.x - lHip.x) * (180 / Math.PI));
+
+    // Update angle panel
+    updateAngles(Math.round(lineDeviation), Math.round(shTilt), Math.round(hipTilt));
+
+    // Score
+    if (lineDeviation < 5) { score = 94 + Math.round(Math.random() * 5); fb = '🎯 Perfektní vertikála!'; scoreClass = 'good'; }
+    else if (lineDeviation < 12) { score = 80; fb = '✨ Výborná linie!'; scoreClass = 'good'; }
+    else if (lineDeviation < 22) { score = 62; fb = '⚡ Aktivuj core — stáhni žebra'; scoreClass = 'ok'; }
+    else if (lineDeviation < 35) { score = 42; fb = '⚠️ Banana back — squeeze glutes'; scoreClass = 'bad'; }
+    else { score = 20; fb = '❌ Ztráta kontroly — koriguj'; scoreClass = 'bad'; }
+
+    if (score > 50) { if (!holdActive) startHold(); }
+    else { if (holdActive) stopHold(); }
+
   } else {
-    document.getElementById('ang-body').textContent='📱';
-    document.getElementById('ang-sh').textContent='gyro';
-    document.getElementById('ang-hip').textContent='N/A';
+    // === STANDING ANALYSIS ===
+    // Check overhead mobility, shoulder position, hip alignment for diagnostics
+    const shTilt = Math.abs(Math.atan2(rSh.y - lSh.y, rSh.x - lSh.x) * (180 / Math.PI));
+    const hipTilt = Math.abs(Math.atan2(rHip.y - lHip.y, rHip.x - lHip.x) * (180 / Math.PI));
+    updateAngles(0, Math.round(shTilt), Math.round(hipTilt));
+
+    if (holdActive) stopHold();
+    fb = 'Jdi do stojky! 🤸';
+    setScoreUI(0, fb, 'idle');
+    return;
   }
+
+  setScoreUI(score, fb, scoreClass);
 }
 
-function drawMotionOverlay(ctx, W, H, avgMotion, isStill){
-  // Motion bar at bottom
-  const barW=Math.min(avgMotion/20, 1)*W;
-  const color=isStill?'rgba(0,230,118,0.5)':'rgba(255,107,53,0.5)';
-  ctx.fillStyle=color;
-  ctx.fillRect(0, H-4, barW, 4);
+function updateAngles(line, sh, hip) {
+  document.getElementById('av-sh').textContent = sh + '°';
+  document.getElementById('av-hip').textContent = hip + '°';
+  document.getElementById('av-an').textContent = line + '°';
 
-  // Status indicator top-left
-  ctx.fillStyle=isStill?'rgba(0,230,118,0.8)':'rgba(255,107,53,0.8)';
-  ctx.beginPath();
-  ctx.arc(20,20,8,0,Math.PI*2);
-  ctx.fill();
+  const abSh = document.getElementById('ab-sh');
+  const abHip = document.getElementById('ab-hip');
+  const abAn = document.getElementById('ab-an');
 
-  // Grid lines (rule of thirds for positioning)
-  ctx.strokeStyle='rgba(0,229,255,0.08)';
-  ctx.lineWidth=1;
-  ctx.setLineDash([4,8]);
-  ctx.beginPath();
-  ctx.moveTo(W/3,0);ctx.lineTo(W/3,H);
-  ctx.moveTo(W*2/3,0);ctx.lineTo(W*2/3,H);
-  ctx.moveTo(0,H/3);ctx.lineTo(W,H/3);
-  ctx.moveTo(0,H*2/3);ctx.lineTo(W,H*2/3);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Center crosshair
-  ctx.strokeStyle='rgba(0,229,255,0.3)';
-  ctx.lineWidth=1;
-  ctx.beginPath();
-  ctx.moveTo(W/2-20,H/2);ctx.lineTo(W/2+20,H/2);
-  ctx.moveTo(W/2,H/2-20);ctx.lineTo(W/2,H/2+20);
-  ctx.stroke();
+  abSh.className = 'a-box' + (sh > 8 ? ' warn' : '');
+  abHip.className = 'a-box' + (hip > 8 ? ' warn' : '');
+  abAn.className = 'a-box' + (line > 15 ? ' warn' : '');
 }
 
-function setScore(s,fb){
-  const el=document.getElementById('align-score');
-  el.textContent=s>0?s:'—';
-  el.className='align-score'+(s>=75?'':s>=50?' mid':' low');
-  document.getElementById('feedback-txt').textContent=fb;
+function setScoreUI(score, fb, cls) {
+  const el = document.getElementById('score-big');
+  el.textContent = score > 0 ? score : '—';
+  el.className = 'score-big ' + (cls || 'idle');
+  document.getElementById('score-fb').textContent = fb;
 }
 
-function startHold(){
-  if(holdActive)return;
-  holdActive=true;holdStart=Date.now();holdSecs=0;
-  document.getElementById('hold-timer').classList.add('active');
-  holdInt=setInterval(()=>{
-    holdSecs=(Date.now()-holdStart)/1000;
+// Hold management
+function startHold() {
+  if (holdActive) return;
+  holdActive = true; holdStart = Date.now(); holdSecs = 0;
+  document.getElementById('hold-ring').classList.add('show');
+  holdInt = setInterval(() => {
+    holdSecs = (Date.now() - holdStart) / 1000;
     updateRing(holdSecs);
-    if(holdSecs>ST.pb&&ST.pb>0) document.getElementById('pb-flash').classList.add('show');
-  },100);
+    if (holdSecs > ST.pb && ST.pb > 0) document.getElementById('pb-badge').classList.add('show');
+  }, 100);
 }
 
-function stopHold(){
-  if(!holdActive)return;
-  holdActive=false;clearInterval(holdInt);
-  document.getElementById('hold-timer').classList.remove('active');
-  document.getElementById('pb-flash').classList.remove('show');
-  if(holdSecs>.5){
-    const d=Math.round(holdSecs*10)/10;
-    sessHolds.push(d);sessBest=Math.max(sessBest,d);sessTotal+=d;
-    ST.holds.push({duration:d,date:new Date().toISOString()});
+function stopHold() {
+  if (!holdActive) return;
+  holdActive = false; clearInterval(holdInt);
+  document.getElementById('hold-ring').classList.remove('show');
+  document.getElementById('pb-badge').classList.remove('show');
+  if (holdSecs > 0.5) {
+    const d = Math.round(holdSecs * 10) / 10;
+    sessHolds.push(d); sessBest = Math.max(sessBest, d); sessTotal += d;
+    ST.holds.push({ duration: d, date: new Date().toISOString() });
     ST.attempts++;
-    const isPB=d>ST.pb;
-    if(isPB){ST.pb=d;showPB(d);}
-    addLog(`Hold ${d.toFixed(1)}s${isPB?' 🏆 PB!':''}`,isPB?'pb':'');
-    save();updateSessUI();
+    const isPB = d > ST.pb;
+    if (isPB) { ST.pb = d; showPB(d); }
+    addLog(`Hold ${d.toFixed(1)}s${isPB ? ' 🏆 PB!' : ''}`, isPB ? 'pb' : '');
+    save(); updateSessUI();
   }
-  document.getElementById('hold-secs').textContent='0';
-  document.getElementById('ring-fill').style.strokeDashoffset=440;
-  stableStart=null;stableConfirmed=false;unstableStart=null;
+  document.getElementById('hold-num').textContent = '0';
+  document.getElementById('ring-fill').style.strokeDashoffset = 440;
+  lmBuffer = [];
 }
 
-function updateRing(secs){
-  document.getElementById('hold-secs').textContent=Math.floor(secs);
-  const maxS=30,prog=Math.min(secs/maxS,1),circ=440;
-  const rf=document.getElementById('ring-fill');
-  rf.style.strokeDashoffset=circ*(1-prog);
-  rf.style.stroke=secs>=10?'var(--yellow)':secs>=5?'var(--green)':'var(--accent)';
+function updateRing(s) {
+  document.getElementById('hold-num').textContent = Math.floor(s);
+  const prog = Math.min(s / 30, 1);
+  document.getElementById('ring-fill').style.strokeDashoffset = 440 * (1 - prog);
+  document.getElementById('ring-fill').style.stroke = s >= 10 ? 'var(--yellow)' : s >= 5 ? 'var(--green)' : 'var(--accent)';
 }
 
-function toggleDetect(){
-  detecting=!detecting;
-  const btn=document.getElementById('btn-detect');
-  if(detecting){
-    btn.textContent='⏹ Stop';btn.style.background='var(--red)';
-    prevPixels=null;motionHistory=[];stableStart=null;unstableStart=null;
-    countdown(3,()=>{ detectRAF=requestAnimationFrame(analyzeFrame); });
-  }else{
-    btn.textContent='▶ Spustit';btn.style.background='var(--accent)';
-    if(detectRAF) cancelAnimationFrame(detectRAF);
+function toggleDetect() {
+  detecting = !detecting;
+  const btn = document.getElementById('btn-detect');
+  if (detecting) {
+    btn.textContent = '⏹ Stop'; btn.style.background = 'var(--red)';
+    lmBuffer = [];
+    countdown(3, () => { if (modelReady) detectLoop(); });
+  } else {
+    btn.textContent = '▶ Spustit'; btn.style.background = 'var(--accent)';
+    if (rafId) cancelAnimationFrame(rafId);
     stopHold();
-    const cv=document.getElementById('pose-canvas');
-    const ctx=cv.getContext('2d');
-    ctx.clearRect(0,0,cv.width,cv.height);
-    setScore(0,'Stoupni před kameru');
-    ['ang-body','ang-sh','ang-hip'].forEach(id=>document.getElementById(id).textContent='—°');
-    if(sessHolds.length>0){
+    ctx.clearRect(0, 0, cvEl.width, cvEl.height);
+    setScoreUI(0, 'Stoupni před kameru', 'idle');
+    ['av-sh','av-hip','av-an'].forEach(id => document.getElementById(id).textContent = '—');
+    if (sessHolds.length > 0) {
       ST.sessions++;
-      const td=new Date().toDateString();
-      if(!ST.streak.includes(td))ST.streak.push(td);
-      save();updateHome();
+      const td = new Date().toDateString();
+      if (!ST.streak.includes(td)) ST.streak.push(td);
+      save();
     }
   }
 }
 
-function flipCam(){camFacing=camFacing==='user'?'environment':'user';if(stream)startCamera();}
-function goHome(){if(sessHolds.length>0&&detecting)toggleDetect();showScreen('s-home');}
-
-function countdown(from,cb){
-  const ov=document.getElementById('countdown-ov'),n=document.getElementById('countdown-n');
-  let c=from;ov.classList.add('active');n.textContent=c;
-  const iv=setInterval(()=>{c--;if(c<=0){clearInterval(iv);ov.classList.remove('active');cb&&cb();}else{n.textContent=c;}},1000);
+function flipCam() {
+  camFacing = camFacing === 'user' ? 'environment' : 'user';
+  if (stream) startCamera();
 }
 
-function updateSessUI(){
-  document.getElementById('s-att').textContent=sessHolds.length;
-  document.getElementById('s-best').textContent=sessBest.toFixed(1)+'s';
-  document.getElementById('s-total').textContent=sessTotal.toFixed(0)+'s';
-  document.getElementById('s-avg').textContent=sessHolds.length>0?(sessTotal/sessHolds.length).toFixed(1)+'s':'—';
+function countdown(from, cb) {
+  const ov = document.getElementById('cdown'), n = document.getElementById('cdown-n');
+  let c = from; ov.classList.add('show'); n.textContent = c;
+  const iv = setInterval(() => {
+    c--;
+    if (c <= 0) { clearInterval(iv); ov.classList.remove('show'); cb && cb(); }
+    else { n.textContent = c; }
+  }, 1000);
 }
 
-// MANUAL TIMER
-let manualActive=false,manualStart_t=null,manualInt=null;
-function showManualTimer(){
-  document.getElementById('cam-placeholder').style.display='none';
-  document.getElementById('manual-timer').style.display='flex';
+function updateSessUI() {
+  document.getElementById('ss-att').textContent = sessHolds.length;
+  document.getElementById('ss-best').textContent = sessBest.toFixed(1) + 's';
+  document.getElementById('ss-total').textContent = sessTotal.toFixed(0) + 's';
+  document.getElementById('ss-avg').textContent = sessHolds.length > 0 ? (sessTotal / sessHolds.length).toFixed(1) + 's' : '—';
 }
-function hideManualTimer(){
-  document.getElementById('manual-timer').style.display='none';
-  document.getElementById('cam-placeholder').style.display='flex';
-}
-function manualStart(e){
-  e.preventDefault();if(manualActive)return;
-  manualActive=true;manualStart_t=Date.now();
-  const btn=document.getElementById('btn-manual');
-  btn.textContent='PUSŤTE';btn.classList.add('holding');
-  document.getElementById('manual-timer-sub').textContent='Drž stojku!';
-  manualInt=setInterval(()=>{
-    const secs=(Date.now()-manualStart_t)/1000;
-    document.getElementById('manual-time-display').textContent=secs.toFixed(1);
-  },100);
-}
-function manualStop(e){
-  e.preventDefault();if(!manualActive)return;
-  clearInterval(manualInt);manualActive=false;
-  const secs=(Date.now()-manualStart_t)/1000;
-  const btn=document.getElementById('btn-manual');
-  btn.classList.remove('holding');btn.textContent='DRŽÍ\nME';
-  document.getElementById('manual-timer-sub').textContent='Drž tlačítko během stojky';
-  if(secs>.3){
-    const d=Math.round(secs*10)/10;
-    sessHolds.push(d);sessBest=Math.max(sessBest,d);sessTotal+=d;
-    ST.holds.push({duration:d,date:new Date().toISOString()});
-    ST.attempts++;
-    const isPB=d>ST.pb;
-    if(isPB){ST.pb=d;showPB(d);}
-    addLog(`Hold ${d.toFixed(1)}s${isPB?' 🏆 PB!':''}`,isPB?'pb':'');
-    save();updateSessUI();
-    document.getElementById('manual-time-display').textContent=d.toFixed(1);
-    document.getElementById('manual-timer-sub').textContent=`Zaznamenáno${isPB?' — nový rekord! 🏆':''}`;
-    if(!ST.streak.includes(new Date().toDateString()))ST.streak.push(new Date().toDateString());
-    ST.sessions++;save();
+
+// ============================================================
+// MOTION FALLBACK (when MoveNet unavailable)
+// ============================================================
+let prevPx = null, motionHist = [];
+function startMotionFallback() {
+  function loop() {
+    if (!detecting) { requestAnimationFrame(loop); return; }
+    const off = document.createElement('canvas'); off.width = 80; off.height = 60;
+    const oc = off.getContext('2d'); oc.drawImage(vidEl, 0, 0, 80, 60);
+    const curr = oc.getImageData(0, 0, 80, 60).data;
+    ctx.clearRect(0, 0, cvEl.width, cvEl.height);
+    ctx.save(); ctx.scale(-1, 1); ctx.drawImage(vidEl, -cvEl.width, 0, cvEl.width, cvEl.height); ctx.restore();
+    let motion = 0;
+    if (prevPx) {
+      for (let i = 0; i < curr.length; i += 4) motion += Math.abs(curr[i] - prevPx[i]) + Math.abs(curr[i+1] - prevPx[i+1]) + Math.abs(curr[i+2] - prevPx[i+2]);
+      motion /= (curr.length / 4 * 3);
+    }
+    prevPx = new Uint8ClampedArray(curr);
+    motionHist.push(motion); if (motionHist.length > 12) motionHist.shift();
+    const avg = motionHist.reduce((a,b)=>a+b,0) / motionHist.length;
+    const still = avg < 5;
+    if (still) {
+      const score = Math.min(95, Math.round(95 - avg * 6));
+      setScoreUI(score, '✓ Detekován klidný hold', 'good');
+      if (!holdActive) startHold();
+    } else {
+      setScoreUI(0, avg > 15 ? '🤸 Pohyb — připravuješ se?' : '⏳ Znehybni do stojky', 'idle');
+      if (holdActive) stopHold();
+    }
+    requestAnimationFrame(loop);
   }
+  loop();
+}
+
+// ============================================================
+// MANUAL TIMER
+// ============================================================
+let manActive = false, manStart = null, manInt = null;
+function showManualOv() { document.getElementById('manual-ov').classList.add('show'); }
+function hideManualOv() { document.getElementById('manual-ov').classList.remove('show'); }
+function manualStart(e) {
+  e.preventDefault(); if (manActive) return;
+  manActive = true; manStart = Date.now();
+  document.getElementById('btn-hold').classList.add('holding');
+  document.getElementById('btn-hold').innerHTML = 'PUSŤ<br>ME';
+  document.getElementById('manual-sub').textContent = 'Drž stojku!';
+  manInt = setInterval(() => {
+    const s = (Date.now() - manStart) / 1000;
+    document.getElementById('manual-disp').textContent = s.toFixed(1);
+  }, 100);
+}
+function manualStop(e) {
+  e.preventDefault(); if (!manActive) return;
+  clearInterval(manInt); manActive = false;
+  const s = (Date.now() - manStart) / 1000;
+  document.getElementById('btn-hold').classList.remove('holding');
+  document.getElementById('btn-hold').innerHTML = 'DRŽÍ<br>ME';
+  document.getElementById('manual-sub').textContent = 'Drž tlačítko během stojky';
+  if (s > 0.3) {
+    const d = Math.round(s * 10) / 10;
+    sessHolds.push(d); sessBest = Math.max(sessBest, d); sessTotal += d;
+    ST.holds.push({ duration: d, date: new Date().toISOString() });
+    ST.attempts++;
+    const isPB = d > ST.pb;
+    if (isPB) ST.pb = d;
+    addLog(`Hold ${d.toFixed(1)}s${isPB ? ' 🏆 PB!' : ''}`, isPB ? 'pb' : '');
+    if (!ST.streak.includes(new Date().toDateString())) ST.streak.push(new Date().toDateString());
+    ST.sessions++; save(); updateSessUI();
+    document.getElementById('manual-sub').textContent = `${d.toFixed(1)}s zaznamenáno${isPB ? ' — nový rekord! 🏆' : ''}`;
+  }
+}
+
+// ============================================================
+// DIAGNOSTIC SCAN
+// ============================================================
+let diagLandmarks = null;
+let diagScanActive = false;
+
+async function startDiagScan() {
+  if (!stream) {
+    await startCamera();
+    await new Promise(r => setTimeout(r, 1500));
+  }
+  if (!modelReady) {
+    alert('Model se načítá, zkus za chvíli znovu.');
+    return;
+  }
+
+  showScr('s-scan');
+  // Collect 3 seconds of landmarks
+  setScoreUI(0, '🔍 Skenování... stůj rovně', 'ok');
+  diagScanActive = true;
+  const samples = [];
+  const start = Date.now();
+
+  const scanLoop = async () => {
+    if (!diagScanActive) return;
+    if (Date.now() - start > 3000) {
+      diagScanActive = false;
+      if (samples.length > 0) {
+        const avg = averageLandmarks(samples);
+        diagLandmarks = avg;
+        processDiag(avg);
+        showScr('s-diag');
+      }
+      return;
+    }
+    try {
+      if (vidEl && vidEl.readyState >= 2) {
+        const poses = await detector.estimatePoses(vidEl);
+        if (poses && poses.length > 0) samples.push(poses[0].keypoints);
+      }
+    } catch (e) {}
+    requestAnimationFrame(scanLoop);
+  };
+  scanLoop();
+}
+
+function averageLandmarks(samples) {
+  const n = samples.length;
+  return samples[0].map((kp, i) => ({
+    x: samples.reduce((s, b) => s + b[i].x, 0) / n,
+    y: samples.reduce((s, b) => s + b[i].y, 0) / n,
+    score: samples.reduce((s, b) => s + b[i].score, 0) / n,
+    name: kp.name
+  }));
+}
+
+// ============================================================
+// DIAGNOSTIC PROCESSING
+// ============================================================
+function processDiag(kps) {
+  const conf = i => kps[i] && kps[i].score > 0.35;
+
+  // Key points
+  const lSh = kps[5], rSh = kps[6];
+  const lHip = kps[11], rHip = kps[12];
+  const lKn = kps[13], rKn = kps[14];
+  const lAnk = kps[15], rAnk = kps[16];
+  const lWr = kps[9], rWr = kps[10];
+  const nose = kps[0];
+
+  const results = [];
+
+  // 1. SHOULDER ALIGNMENT (tilt left/right)
+  if (conf(5) && conf(6)) {
+    const shTilt = Math.abs(Math.atan2(rSh.y - lSh.y, rSh.x - lSh.x) * (180 / Math.PI));
+    results.push({
+      id: 'shoulder_tilt',
+      icon: '🏋️',
+      name: 'Asymetrie ramen',
+      value: Math.round(shTilt),
+      unit: '°',
+      good: shTilt < 4,
+      warn: shTilt >= 4 && shTilt < 10,
+      bad: shTilt >= 10,
+      detail: shTilt < 4 ? 'Ramena jsou symetrická — skvěle!' :
+              shTilt < 10 ? `Mírná asymetrie ${Math.round(shTilt)}° — jedno rameno výš` :
+              `Výrazná asymetrie ${Math.round(shTilt)}° — nutná práce na vyrovnání`,
+      muscles: ['Trapézový sval', 'Serratus anterior', 'Rotátory'],
+      limitFor: 'Stojka bude rotovat — nelze dosáhnout vertikály'
+    });
+  }
+
+  // 2. OVERHEAD MOBILITY — wrist position relative to shoulders
+  if (conf(9) && conf(10) && conf(5) && conf(6)) {
+    const midSh = { x: (lSh.x + rSh.x) / 2, y: (lSh.y + rSh.y) / 2 };
+    const midWr = { x: (lWr.x + rWr.x) / 2, y: (lWr.y + rWr.y) / 2 };
+    // In standing, check if wrists can reach overhead (y of wrists vs shoulders)
+    // Also check anterior shoulder (are shoulders rounded?)
+    const shWidth = Math.abs(rSh.x - lSh.x);
+    const wrWidth = Math.abs(rWr.x - lWr.x);
+    const overheadRatio = wrWidth / shWidth;
+    // If wrists are much narrower than shoulders when raised, limited overhead
+    const overheadScore = Math.round(overheadRatio * 100);
+    results.push({
+      id: 'overhead',
+      icon: '💪',
+      name: 'Overhead mobilita',
+      value: overheadScore,
+      unit: '%',
+      good: overheadScore > 85,
+      warn: overheadScore >= 65 && overheadScore <= 85,
+      bad: overheadScore < 65,
+      detail: overheadScore > 85 ? 'Dobrá overhead mobilita ramen' :
+              overheadScore >= 65 ? 'Omezená mobilita — ramena nejdou plně za uši' :
+              'Výrazně omezená overhead mobilita — klíčový problém pro stojku',
+      muscles: ['Přední deltoid', 'Velký prsní', 'Latissimus dorsi'],
+      limitFor: 'Bez otevřených ramen nelze dosáhnout bezpečné vertikály'
+    });
+  }
+
+  // 3. HIP ALIGNMENT
+  if (conf(11) && conf(12)) {
+    const hipTilt = Math.abs(Math.atan2(rHip.y - lHip.y, rHip.x - lHip.x) * (180 / Math.PI));
+    results.push({
+      id: 'hip_tilt',
+      icon: '🦴',
+      name: 'Pelvický tilt',
+      value: Math.round(hipTilt),
+      unit: '°',
+      good: hipTilt < 5,
+      warn: hipTilt >= 5 && hipTilt < 12,
+      bad: hipTilt >= 12,
+      detail: hipTilt < 5 ? 'Pánev je symetrická — výborně' :
+              hipTilt < 12 ? `Mírný tilt pánve ${Math.round(hipTilt)}° — lehká asymetrie` :
+              `Výrazný tilt pánve ${Math.round(hipTilt)}° — způsobuje banana back ve stojce`,
+      muscles: ['Iliopsoas', 'Quadratus lumborum', 'Gluteus medius'],
+      limitFor: 'Anteriorní tilt pánve = prohnutá záda ve stojce'
+    });
+  }
+
+  // 4. LATERAL BODY LINE (scoliosis check)
+  if (conf(5) && conf(6) && conf(11) && conf(12)) {
+    const midSh = { x: (lSh.x + rSh.x) / 2, y: (lSh.y + rSh.y) / 2 };
+    const midHip = { x: (lHip.x + rHip.x) / 2, y: (lHip.y + rHip.y) / 2 };
+    const lateralDev = Math.abs(midSh.x - midHip.x) / (Math.abs(rSh.x - lSh.x)) * 100;
+    results.push({
+      id: 'lateral',
+      icon: '📐',
+      name: 'Laterální linie',
+      value: Math.round(100 - lateralDev),
+      unit: '%',
+      good: lateralDev < 8,
+      warn: lateralDev >= 8 && lateralDev < 18,
+      bad: lateralDev >= 18,
+      detail: lateralDev < 8 ? 'Tělo je v přímé ose — skvělá báze' :
+              lateralDev < 18 ? 'Mírný laterální posun — core kompenzuje' :
+              'Výrazný laterální posun — omezení core stability',
+      muscles: ['Quadratus lumborum', 'Obliques', 'Serratus anterior'],
+      limitFor: 'Laterální posun = nestabilní stojka, padání do strany'
+    });
+  }
+
+  // 5. KNEE ALIGNMENT
+  if (conf(13) && conf(14) && conf(11) && conf(12)) {
+    const knTilt = Math.abs(Math.atan2(rKn.y - lKn.y, rKn.x - lKn.x) * (180 / Math.PI));
+    results.push({
+      id: 'knee',
+      icon: '🦵',
+      name: 'Alignace kolen',
+      value: Math.round(knTilt),
+      unit: '°',
+      good: knTilt < 5,
+      warn: knTilt >= 5 && knTilt < 12,
+      bad: knTilt >= 12,
+      detail: knTilt < 5 ? 'Kolena jsou symetrická' :
+              knTilt < 12 ? `Mírná asymetrie kolen ${Math.round(knTilt)}°` :
+              `Výrazná asymetrie kolen — kontroluj flexi kyčlí`,
+      muscles: ['Quadriceps', 'Hamstringy', 'IT band'],
+      limitFor: 'Asymetrie kolen způsobuje rotaci těla ve stojce'
+    });
+  }
+
+  // Store results
+  ST.lastDiag = { results, date: new Date().toISOString() };
+  save();
+
+  // Render results
+  renderDiagResults(results, kps);
+  // Generate warmup
+  generateWarmup(results);
+  // Draw skeleton
+  drawDiagSkeleton(kps);
+}
+
+function renderDiagResults(results, kps) {
+  document.getElementById('skel-section').style.display = 'block';
+  document.getElementById('diag-results-section').style.display = 'block';
+  document.getElementById('scan-card').style.display = 'none';
+
+  const container = document.getElementById('diag-results');
+  container.innerHTML = results.map(r => {
+    const cls = r.bad ? 'bad' : r.warn ? 'warn' : 'good';
+    const icon2 = r.bad ? '🔴' : r.warn ? '🟡' : '🟢';
+    return `
+      <div class="diag-item ${cls}">
+        <div class="diag-icon">${r.icon}</div>
+        <div class="diag-info">
+          <div class="diag-name">${r.name} ${icon2}</div>
+          <div class="diag-detail">${r.detail}</div>
+          ${r.bad || r.warn ? `<div class="diag-detail" style="margin-top:4px;color:var(--red);opacity:.8">⚠️ ${r.limitFor}</div>` : ''}
+        </div>
+        <div class="diag-score">${r.value}${r.unit}</div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('diag-sub').textContent =
+    `Poslední sken: ${new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' })}`;
+}
+
+function drawDiagSkeleton(kps) {
+  const canvas = document.getElementById('diag-canvas');
+  // Capture from main video
+  canvas.width = 280; canvas.height = 200;
+  const dctx = canvas.getContext('2d');
+  dctx.fillStyle = '#0f1318';
+  dctx.fillRect(0, 0, 280, 200);
+
+  if (!vidEl) return;
+  // Draw scaled video
+  dctx.save();
+  dctx.scale(-1, 1);
+  dctx.drawImage(vidEl, -280, 0, 280, 200);
+  dctx.restore();
+
+  // Draw skeleton scaled
+  const scaleX = 280 / (vidEl.videoWidth || 640);
+  const scaleY = 200 / (vidEl.videoHeight || 480);
+
+  CONNECTIONS.forEach(([a, b]) => {
+    const ka = kps[a], kb = kps[b];
+    if (ka.score < 0.3 || kb.score < 0.3) return;
+    dctx.beginPath();
+    dctx.moveTo(280 - ka.x * scaleX, ka.y * scaleY);
+    dctx.lineTo(280 - kb.x * scaleX, kb.y * scaleY);
+    dctx.strokeStyle = 'rgba(0,229,255,0.7)';
+    dctx.lineWidth = 2;
+    dctx.stroke();
+  });
+
+  [5,6,9,10,11,12,15,16].forEach(i => {
+    const kp = kps[i];
+    if (kp.score < 0.3) return;
+    dctx.beginPath();
+    dctx.arc(280 - kp.x * scaleX, kp.y * scaleY, 5, 0, Math.PI * 2);
+    dctx.fillStyle = KP_COLORS[i] || '#00e5ff';
+    dctx.fill();
+  });
+}
+
+// ============================================================
+// WARMUP GENERATION
+// ============================================================
+const WARMUP_DRILLS = {
+  shoulder_open: {
+    icon: '🌀', type: 'mobility',
+    name: 'Shoulder CARs',
+    detail: 'Controlled Articular Rotations ramenního kloubu. Plný rozsah, vědomý pohyb.',
+    sets: '2 × 5 každá strana', target: 'Ramena',
+    fix: 'overhead',
+    cue: 'Maximální rozsah — žádná kompenzace trupem'
+  },
+  wall_slides: {
+    icon: '🧱', type: 'mobility',
+    name: 'Wall Slides',
+    detail: 'Předloktí na zdi, pomalu jezdíš nahoru. Lopatky se stahují dolů a k sobě.',
+    sets: '3 × 10 opakování', target: 'Overhead mobilita',
+    fix: 'overhead',
+    cue: 'Záda flat na zdi celou dobu — nevychyl bedra'
+  },
+  thoracic_rotation: {
+    icon: '🔄', type: 'mobility',
+    name: 'Thoracic Rotation',
+    detail: 'V čtyřoporovém stoji ruku za hlavu, otáčej hrudní páteř. Bedra se nehybou.',
+    sets: '2 × 10 každá strana', target: 'Hrudní páteř',
+    fix: 'overhead',
+    cue: 'Pohyb z Th-páteře — bedra jsou fixed'
+  },
+  rib_tuck: {
+    icon: '💪', type: 'activation',
+    name: 'Rib Tuck Activation',
+    detail: 'Leh na zádech, stáhni žebra k podložce. Drž 5s. Aktivace anti-extension core.',
+    sets: '3 × 10s hold', target: 'Core — anteriorní tilt',
+    fix: 'hip_tilt',
+    cue: 'Bedra nesmí být přilepena k podložce — jen žebra'
+  },
+  hip_flexor_stretch: {
+    icon: '🦵', type: 'stretch',
+    name: 'Hip Flexor Stretch',
+    detail: 'Výpad, zadní koleno na zemi. Pomalu posuň pánev dopředu. Drž 30–45s.',
+    sets: '2 × 45s každá strana', target: 'Iliopsoas',
+    fix: 'hip_tilt',
+    cue: 'Pánev musí být v neutrále — nestrkej ji dopředu silou'
+  },
+  posterior_pelvic_tilt: {
+    icon: '🔧', type: 'activation',
+    name: 'Posterior Pelvic Tilt',
+    detail: 'Leh, stiskni hýždě a přitlač bedra k podložce. Toto je pocit co potřebuješ ve stojce.',
+    sets: '3 × 10 opakování', target: 'Gluteus, core',
+    fix: 'hip_tilt',
+    cue: 'Squeeze glutes first — pak tilt. Ne opačně.'
+  },
+  lat_stretch: {
+    icon: '🤸', type: 'stretch',
+    name: 'Lat Stretch (doorway)',
+    detail: 'Drž rám dveří, usaď se do dřepu. Cíleně protahuješ latissimus dorsi.',
+    sets: '2 × 30s každá strana', target: 'Latissimus',
+    fix: 'lateral',
+    cue: 'Drž hlavu neutrálně — neklop ji dolů'
+  },
+  side_plank: {
+    icon: '📐', type: 'strength',
+    name: 'Side Plank',
+    detail: 'Boční plank na předloktí nebo ruce. Drž přímou linii hlavy–paty.',
+    sets: '3 × 20–30s každá strana', target: 'Quadratus lumborum, Obliques',
+    fix: 'lateral',
+    cue: 'Kyčel nesmí klesat — aktivuj celý bok'
+  },
+  scapular_pushups: {
+    icon: '⚡', type: 'activation',
+    name: 'Scapular Push-ups',
+    detail: 'V planku nebo stoji klouzej lopatkami — protrakce/retrakce. Ramena se neohýbají.',
+    sets: '3 × 15 opakování', target: 'Serratus anterior',
+    fix: 'shoulder_tilt',
+    cue: 'Pohyb jen v lopatkách — paže zůstávají straight'
+  },
+  wrist_prep: {
+    icon: '🖐️', type: 'mobility',
+    name: 'Wrist CARs + Loading',
+    detail: 'Kroužky zápěstím (5× každý směr), pak přenos váhy ve čtyřoporovém stoji.',
+    sets: '2 × 5 + 30s loading', target: 'Zápěstí a předloktí',
+    fix: 'always',
+    cue: 'Zápěstí musí být warm před každou stojkou — vždy'
+  },
+  hollow_body: {
+    icon: '🚀', type: 'activation',
+    name: 'Hollow Body Hold',
+    detail: 'Leh, paže za hlavou, zvedni lopatky a nohy 15cm od podlahy. Drž linii.',
+    sets: '3 × 15–20s', target: 'Celý anteriorní řetězec',
+    fix: 'always',
+    cue: 'Bedra flat — záda na podložce celou dobu'
+  },
+  cat_cow: {
+    icon: '🐱', type: 'mobility',
+    name: 'Cat-Cow Spinal Mobility',
+    detail: 'Čtyřopora, střídej maximální flexi a extenzi páteře. Vědomý segmentový pohyb.',
+    sets: '2 × 10 cyklů', target: 'Páteř — mobilita',
+    fix: 'always',
+    cue: 'Pomalé tempo — každý obratel zvlášť'
+  }
+};
+
+function generateWarmup(diagResults) {
+  const warmupItems = [];
+
+  // Always include
+  warmupItems.push(WARMUP_DRILLS.wrist_prep);
+  warmupItems.push(WARMUP_DRILLS.cat_cow);
+  warmupItems.push(WARMUP_DRILLS.hollow_body);
+
+  // Based on issues found
+  const issues = diagResults.filter(r => r.bad || r.warn).map(r => r.id);
+
+  if (issues.includes('overhead') || issues.includes('shoulder_tilt')) {
+    warmupItems.push(WARMUP_DRILLS.shoulder_open);
+    warmupItems.push(WARMUP_DRILLS.wall_slides);
+    warmupItems.push(WARMUP_DRILLS.thoracic_rotation);
+  }
+
+  if (issues.includes('hip_tilt')) {
+    warmupItems.push(WARMUP_DRILLS.rib_tuck);
+    warmupItems.push(WARMUP_DRILLS.posterior_pelvic_tilt);
+    warmupItems.push(WARMUP_DRILLS.hip_flexor_stretch);
+  }
+
+  if (issues.includes('lateral')) {
+    warmupItems.push(WARMUP_DRILLS.lat_stretch);
+    warmupItems.push(WARMUP_DRILLS.side_plank);
+  }
+
+  if (issues.includes('shoulder_tilt') && !warmupItems.includes(WARMUP_DRILLS.scapular_pushups)) {
+    warmupItems.push(WARMUP_DRILLS.scapular_pushups);
+  }
+
+  // Deduplicate
+  const unique = [];
+  const seen = new Set();
+  warmupItems.forEach(w => {
+    if (!seen.has(w.name)) { seen.add(w.name); unique.push(w); }
+  });
+
+  // Generate intro text
+  const badCount = diagResults.filter(r => r.bad).length;
+  const warnCount = diagResults.filter(r => r.warn).length;
+  let intro = '';
+  if (badCount === 0 && warnCount === 0) {
+    intro = '🎉 Výborná postura! Tvůj warm-up je standardní příprava na stojku.';
+  } else if (badCount > 0) {
+    const names = diagResults.filter(r => r.bad).map(r => r.name).join(', ');
+    intro = `⚠️ Nalezena omezení: ${names}. Warm-up je nastaven prioritně na jejich odstranění.`;
+  } else {
+    intro = `💡 Mírná omezení nalezena. Warm-up cílí na jejich zlepšení před stojkou.`;
+  }
+
+  document.getElementById('warmup-intro').textContent = intro;
+  document.getElementById('warmup-section').style.display = 'block';
+  ST.warmupDone = {};
+  renderWarmup(unique);
+}
+
+function renderWarmup(items) {
+  const list = document.getElementById('warmup-list');
+  list.innerHTML = items.map((item, i) => `
+    <div class="warmup-item ${ST.warmupDone[i] ? 'done' : ''}" id="wi-${i}" onclick="toggleWarmup(${i})">
+      <div class="wi-icon ${item.type}">${item.icon}</div>
+      <div class="wi-body">
+        <div class="wi-name">${item.name}</div>
+        <div class="wi-detail">${item.detail}</div>
+        <div class="wi-tags">
+          <span class="wi-tag">${item.sets}</span>
+          <span class="wi-tag target">🎯 ${item.target}</span>
+          <span class="wi-tag">${item.cue.substring(0, 30)}...</span>
+        </div>
+      </div>
+      <div class="wi-check">${ST.warmupDone[i] ? '✓' : ''}</div>
+    </div>`).join('');
+  // Store for toggle
+  window._currentWarmup = items;
+}
+
+function toggleWarmup(i) {
+  ST.warmupDone[i] = !ST.warmupDone[i];
+  save();
+  const el = document.getElementById(`wi-${i}`);
+  el.classList.toggle('done', ST.warmupDone[i]);
+  el.querySelector('.wi-check').textContent = ST.warmupDone[i] ? '✓' : '';
 }
 
 // ============================================================
 // PROGRESS
 // ============================================================
-function renderProgress(){
-  const holds=ST.holds;
-  const pb=ST.pb;
-  const avg=holds.length>0?(holds.reduce((s,h)=>s+h.duration,0)/holds.length).toFixed(1):0;
-  document.getElementById('pg-pb').textContent=pb.toFixed(1)+'s';
-  document.getElementById('pg-avg').textContent=avg+'s';
-  document.getElementById('pg-sess').textContent=ST.sessions;
-  document.getElementById('pg-att').textContent=ST.attempts;
-  renderChart();renderLog();
-}
+function renderProg() {
+  const pb = ST.pb, avg = ST.holds.length > 0 ?
+    (ST.holds.reduce((s,h)=>s+h.duration,0)/ST.holds.length).toFixed(1) : 0;
+  document.getElementById('pg-pb').textContent = pb.toFixed(1)+'s';
+  document.getElementById('pg-avg').textContent = avg+'s';
+  document.getElementById('pg-sess').textContent = ST.sessions;
+  document.getElementById('pg-att').textContent = ST.attempts;
 
-function renderChart(){
-  const chart=document.getElementById('bars-chart');
-  if(!ST.holds.length){chart.innerHTML='<div style="width:100%;text-align:center;padding:20px 0;color:var(--muted);font-size:13px">Zatím žádné záznamy</div>';return;}
-  const days=[];
-  for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push({lbl:d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric'}),date:d.toDateString(),holds:[]});}
+  // Chart
+  const days = [];
+  for (let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push({lbl:d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric'}),date:d.toDateString(),holds:[]});}
   ST.holds.forEach(h=>{const d=new Date(h.date).toDateString();const day=days.find(x=>x.date===d);if(day)day.holds.push(h.duration);});
   const maxV=Math.max(...days.map(d=>d.holds.length>0?Math.max(...d.holds):0),1);
-  chart.innerHTML=days.map(day=>{
+  const bars=document.getElementById('bars');
+  if(ST.holds.length===0){bars.innerHTML='<div style="width:100%;text-align:center;padding:20px 0;color:var(--muted);font-size:13px">Zatím žádné záznamy</div>';return;}
+  bars.innerHTML=days.map(day=>{
     const best=day.holds.length>0?Math.max(...day.holds):0;
     const h=Math.max((best/maxV)*100,best>0?4:0);
     const isPB=best===ST.pb&&best>0;
-    return`<div class="bar-col"><div class="bar${isPB?' is-pb':''}" style="height:${h}%" title="${best.toFixed(1)}s"></div><div class="bar-lbl">${day.lbl.split('.')[0]}</div></div>`;
+    return`<div class="bc"><div class="bar${isPB?' pb':''}" style="height:${h}%" title="${best.toFixed(1)}s"></div><div class="bl">${day.lbl.split('.')[0]}</div></div>`;
   }).join('');
+
+  // Log
+  const logEl=document.getElementById('log-list');
+  const entries=[...ST.log].reverse().slice(0,20);
+  if(!entries.length){logEl.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:13px">Žádné záznamy</div>';return;}
+  logEl.innerHTML=entries.map(e=>`<div class="log-e"><div class="log-dot${e.type==='pb'?' pb':''}"></div><div class="log-txt">${e.txt}<div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">${e.time}</div></div></div>`).join('');
 }
 
-function renderLog(){
-  const log=document.getElementById('history-log');
-  const entries=[...ST.log].reverse().slice(0,25);
-  if(!entries.length){log.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:13px">Žádné záznamy</div>';return;}
-  log.innerHTML=entries.map(e=>`<div class="log-entry"><div class="log-dot${e.type==='pb'?' pb':''}"></div><div class="log-txt">${e.txt}<div class="log-sub">${e.time}</div></div></div>`).join('');
-}
-
-function addLog(txt,type=''){
+function addLog(txt, type='') {
   ST.log.push({txt,type,time:new Date().toLocaleString('cs-CZ',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})});
-  if(ST.log.length>60)ST.log=ST.log.slice(-60);
+  if(ST.log.length>60) ST.log=ST.log.slice(-60);
 }
 
 // ============================================================
 // CURRICULUM
 // ============================================================
-function renderCurriculum(){
-  const wrap=document.getElementById('curriculum-wrap');
-  wrap.innerHTML=CURRICULUM.map((phase,pi)=>{
-    const isAct=pi===ST.phase,isDone=pi<ST.phase;
-    const drills=phase.drills.map(d=>{
-      const mastered=ST.drillsDone[d.id];
-      return`<div class="drill-card${mastered?' mastered':''}" id="dc-${d.id}" onclick="toggleDC('${d.id}')">
-        <div class="drill-hdr">
-          <div class="drill-emo">${d.emoji}</div>
-          <div class="drill-info">
-            <div class="drill-name">${d.name}</div>
-            <div class="drill-tags">${d.tags.map(t=>`<span class="drill-tag">${t}</span>`).join('')}</div>
+const CURR = [
+  {name:"Fáze 1 — U zdi",sub:"Základní síla, scapular control, kickup",drills:[
+    {id:"f1d1",emoji:"🧱",name:"Wall Plank Hold",tags:["3×30–60s","U zdi"],
+     desc:"Nohy na zdi téměř vertikálně, aktivní ramena a core.",
+     cues:["Tlač zeď aktivně","Rib tuck — žebra dolů","Squeeze glutes"],
+     errors:["Banana back","Pasivní ramena"],target:"3×60s komfortně"},
+    {id:"f1d2",emoji:"🦶",name:"Kick-up Practice",tags:["15 pokusů","U zdi"],
+     desc:"Kickup u zdi — hledáš balanční bod, ne ho udržuješ.",
+     cues:["Ruce 20cm od zdi","Silná noha kope nahoru","Aktivní ramena ihned"],
+     errors:["Skákáš přes","Ruce moc blízko"],target:"10 kontrolovaných kickupů"},
+    {id:"f1d3",emoji:"🚶",name:"Wall Walk",tags:["5–8 opakování","Pomalý"],
+     desc:"Z push-up kráčíš nohama po zdi výše. Trénuje přechod pozic.",
+     cues:["Každý krok = push skrz ramena","Drž core"],
+     errors:["Spěcháš","Prohýbáš záda"],target:"5× pomalý walk"},
+    {id:"f1d4",emoji:"⚖️",name:"Chest-to-Wall Hold",tags:["5×20s","Flat back"],
+     desc:"Hrudník ke zdi, nohy se dotýkají minimálně. Trénuje skutečnou vertikálu.",
+     cues:["Paty ke zdi ne hýždě","Flat back","Deprese lopatek"],
+     errors:["Banana back","Příliš blízko zdi"],target:"5×20s flat back"}
+  ]},
+  {name:"Fáze 2 — Balans",sub:"Finger pressure, první volné sekundy",drills:[
+    {id:"f2d1",emoji:"🖐️",name:"Finger Pressure",tags:["U zdi","5×30s"],
+     desc:"Přenášíš váhu z dlaně na prsty — základ balansu.",
+     cues:["Padáš dopředu = zmáčkni prsty","Wrist flexion jako brzda"],
+     errors:["Box hands — prsty nejsou aktivní"],target:"Vědomé ovládání"},
+    {id:"f2d2",emoji:"🎯",name:"Kickup to Balance",tags:["20 pokusů","Cíl: 1–3s"],
+     desc:"Kickup s cílem najít bod a vydržet 1–3 sekundy volně.",
+     cues:["Hledej vertikálu, nekopej přes","Micro pohyby zápěstí"],
+     errors:["Moc silný kickup","Tuhneš celým tělem"],target:"5 holdů >3s"},
+    {id:"f2d3",emoji:"🌀",name:"Straddle Balance",tags:["10s","10 pokusů"],
+     desc:"Stojka s rozkročenými nohami — nižší těžiště, snazší balans.",
+     cues:["Čím širší, tím stabilnější","Plynulý přechod na straight"],
+     errors:["Nohy ne dost wide"],target:"3×10s straddle"},
+    {id:"f2d4",emoji:"🔄",name:"Shape Shifting",tags:["Tuck→Straight","10 opak"],
+     desc:"V stojce přecházíš mezi tuck, pike, straight. Trénuje kontrolu těžiště.",
+     cues:["Core kompenzuje okamžitě","Tuck je záchrana"],
+     errors:["Ztráta kontroly při přechodu"],target:"Plynulý přechod"}
+  ]},
+  {name:"Fáze 3 — Free Stojka",sub:"Volná stojka, prodloužení holdu",drills:[
+    {id:"f3d1",emoji:"🚀",name:"Free HS Attempts",tags:["20–30 pokusů","Timer"],
+     desc:"Primární praxe. Kickup → balans → hold. Loguj každý pokus.",
+     cues:["Kvalita kickupu = kvalita holdu","Po pádu hned znovu"],
+     errors:["Málo pokusů","Tréninky daleko od sebe"],target:"10s konzistentně"},
+    {id:"f3d2",emoji:"⏱️",name:"Hold Extension",tags:["5×max","3min odpočinek"],
+     desc:"5 maximálních pokusů s plným odpočinkem. Ne denně.",
+     cues:["Každý pokus = plné nasazení","Data jsou tvůj trenér"],
+     errors:["Krátký odpočinek","Pokračuješ unavený"],target:"PB každé 2 týdny"},
+    {id:"f3d3",emoji:"🎪",name:"Tuck to Straight",tags:["10 opak","Pomalu"],
+     desc:"Z tuck holdu pomalu extenduj nohy do straight a zpět.",
+     cues:["Pomalá extenze — 3s","Ramena fixed"],
+     errors:["Setrvačnost místo kontroly"],target:"5× tuck–straight"}
+  ]},
+  {name:"Fáze 4 — Kontrola",sub:"Press, walks, OAH příprava",drills:[
+    {id:"f4d1",emoji:"💎",name:"Tuck Press HS",tags:["5×3 opak","Síla"],
+     desc:"Z tuck pomalu extenduj nohy do straight stojky — silový drill.",
+     cues:["2s extenze, 2s flexe","Core kompenzuje vše"],
+     errors:["Setrvačnost","Ztráta vertikály"],target:"3×5 bez pádu"},
+    {id:"f4d2",emoji:"🚶",name:"HS Walking",tags:["10 kroků","Každý trénink"],
+     desc:"Chůze na rukou — dynamický balans a přesun váhy.",
+     cues:["Malé kroky 5–10cm","Každý krok = nová stojka"],
+     errors:["Příliš velké kroky"],target:"10 kroků plynule"},
+    {id:"f4d3",emoji:"🦅",name:"One Arm Shift",tags:["5× každá","Postupný"],
+     desc:"Přesun 60–80% váhy na jednu ruku. Příprava na OAH.",
+     cues:["Pomalý přesun","Hold min. 2s každá strana"],
+     errors:["Příliš rychlý přesun"],target:"5s 80% váhy"}
+  ]},
+  {name:"Fáze 5 — Pokročilé",sub:"Press, One Arm, dynamika",drills:[
+    {id:"f5d1",emoji:"⚡",name:"Straddle Press HS",tags:["5 pokusů","Ze stoje"],
+     desc:"Vstup do stojky silou bez kickupu. Extrémní hip flexor síla.",
+     cues:["Lean forward agresivně","Straddle co nejširší"],
+     errors:["Nedostatečný lean forward"],target:"1 čistý press"},
+    {id:"f5d2",emoji:"✋",name:"One Arm HS",tags:["10–15 pokusů","S asistencí"],
+     desc:"Pokusy o OAH. Vrchol statické akrobacie.",
+     cues:["Pomalý přesun váhy","Finger pressure klíčový"],
+     errors:["Příliš rychlý přesun"],target:"2s one arm"},
+    {id:"f5d3",emoji:"🌊",name:"HS Push-ups",tags:["5×3","U zdi"],
+     desc:"HSPU u zdi — nejsilnější cvik pro ramenní pletence.",
+     cues:["Kontrolovaný sestup 3s","Plný lockout nahoře"],
+     errors:["Nekompletní ROM"],target:"5×5 HSPU"}
+  ]}
+];
+
+function renderCurr() {
+  const wrap = document.getElementById('curr-wrap');
+  wrap.innerHTML = CURR.map((ph, pi) => {
+    const isAct = pi === ST.phase, isDone = pi < ST.phase;
+    const drills = ph.drills.map(d => {
+      const m = ST.drillsDone[d.id];
+      return `<div class="drill-c${m?' mastered':''}" id="dc-${d.id}" onclick="toggleDC('${d.id}')">
+        <div class="drill-h">
+          <div class="drill-em">${d.emoji}</div>
+          <div class="drill-inf">
+            <div class="drill-nm">${d.name}</div>
+            <div class="drill-tgs">${d.tags.map(t=>`<span class="drill-tg">${t}</span>`).join('')}</div>
           </div>
-          <div class="drill-chk">${mastered?'✓':''}</div>
+          <div class="drill-chk">${m?'✓':''}</div>
         </div>
-        <div class="drill-detail">
-          <div class="drill-detail-inner">
-            <div class="drill-desc">${d.desc}</div>
+        <div class="drill-det">
+          <div class="drill-di">
+            <div class="drill-ds">${d.desc}</div>
             <div class="drill-cues">${d.cues.map(c=>`<div class="drill-cue">${c}</div>`).join('')}</div>
-            <div class="err-box"><div class="err-title">Nejčastější chyby</div>${d.errors.map(e=>`<div class="err-item">${e}</div>`).join('')}</div>
-            <div class="target-box">🎯 <strong style="color:var(--accent)">Cíl:</strong> ${d.target}</div>
-            <button class="btn-mastered" onclick="event.stopPropagation();toggleMastered('${d.id}')">${mastered?'✓ Zvládnuto — odznačit':'+ Označit jako zvládnuté'}</button>
+            <div class="err-b"><div class="err-t">Chyby</div>${d.errors.map(e=>`<div class="err-i">${e}</div>`).join('')}</div>
+            <div class="tgt-b">🎯 <strong style="color:var(--accent)">Cíl:</strong> ${d.target}</div>
+            <button class="btn-mast" onclick="event.stopPropagation();toggleM('${d.id}')">${m?'✓ Zvládnuto — odznačit':'+ Označit jako zvládnuté'}</button>
           </div>
         </div>
       </div>`;
     }).join('');
-    return`<div class="phase-block">
+    return `<div class="phase-b">
       <div class="phase-hdr">
-        <div class="phase-num${isAct?' active':isDone?' done':''}">${String(pi+1).padStart(2,'0')}</div>
-        <div><div class="phase-name-txt">${phase.name}</div><div class="phase-sub-txt">${phase.sub}</div></div>
+        <div class="phase-n${isAct?' active':isDone?' done':''}">${String(pi+1).padStart(2,'0')}</div>
+        <div><div style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px">${ph.name}</div><div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">${ph.sub}</div></div>
       </div>${drills}
     </div>`;
   }).join('');
 }
 
-function toggleDC(id){
-  const el=document.getElementById('dc-'+id);
-  const open=el.classList.contains('open');
-  document.querySelectorAll('.drill-card.open').forEach(c=>c.classList.remove('open'));
-  if(!open)el.classList.add('open');
+function toggleDC(id) {
+  const el = document.getElementById('dc-'+id);
+  const open = el.classList.contains('open');
+  document.querySelectorAll('.drill-c.open').forEach(c=>c.classList.remove('open'));
+  if(!open) el.classList.add('open');
 }
 
-function toggleMastered(id){
-  ST.drillsDone[id]=!ST.drillsDone[id];
-  save();renderCurriculum();updateHome();
+function toggleM(id) {
+  ST.drillsDone[id] = !ST.drillsDone[id]; save(); renderCurr();
 }
 
 // ============================================================
 // AI COACH
 // ============================================================
-let chatHist=[];
+let chatHist = [];
 
-function getSysPrompt(){
-  const ph=CURRICULUM[ST.phase];
-  return`Jsi AI trenér stojky jménem Max. Mluvíš česky, přátelsky ale věcně. Buď konkrétní, max 3–4 věty pokud není potřeba víc.
+function getSys() {
+  const ph = CURR[ST.phase];
+  const diagSummary = ST.lastDiag ?
+    ST.lastDiag.results.filter(r=>r.bad||r.warn).map(r=>`${r.name}: ${r.detail}`).join('; ') :
+    'žádná diagnostika zatím';
+  return `Jsi AI trenér stojky jménem Max. Mluvíš česky, konkrétně, max 3–4 věty.
 
-Kontext uživatele:
-- Aktuální fáze: ${ph.name}
-- Osobní rekord: ${ST.pb.toFixed(1)}s
-- Tréninků: ${ST.sessions}
-- Pokusů celkem: ${ST.attempts}
-- Poslední holdy: ${ST.holds.slice(-5).map(h=>h.duration.toFixed(1)+'s').join(', ')||'zatím žádné'}
+Uživatel:
+- Fáze: ${ph.name}
+- PB: ${ST.pb.toFixed(1)}s
+- Tréninků: ${ST.sessions}, Pokusů: ${ST.attempts}
+- Diagnostika: ${diagSummary}
 
-Pravidla: buď konkrétní, odkazuj na data uživatele, používej technické cues (finger pressure, rib tuck, scapular depression atd), buď motivující ale realistický.`;
+Buď konkrétní, používej technické cues, odkazuj na data uživatele.`;
 }
 
-async function sendMsg(){
-  const inp=document.getElementById('chat-input');
-  const msg=inp.value.trim();if(!msg)return;
-  inp.value='';inp.style.height='auto';
-  addChatMsg('user',msg);chatHist.push({role:'user',content:msg});
-  const tid=addTyping();
-  try{
-    const r=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:getSysPrompt(),messages:chatHist})
+async function sendMsg() {
+  const inp = document.getElementById('chat-inp');
+  const msg = inp.value.trim(); if (!msg) return;
+  inp.value=''; inp.style.height='auto';
+  addChatMsg('user', msg);
+  chatHist.push({role:'user',content:msg});
+  const tid = addTyping();
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:getSys(),messages:chatHist})
     });
-    const data=await r.json();
+    const data = await r.json(); removeTyping(tid);
+    if (data.content&&data.content[0]) {
+      addChatMsg('ai', data.content[0].text);
+      chatHist.push({role:'assistant',content:data.content[0].text});
+    }
+  } catch(e) {
     removeTyping(tid);
-    if(data.content&&data.content[0]){
-      const txt=data.content[0].text;
-      addChatMsg('ai',txt);chatHist.push({role:'assistant',content:txt});
-    }else throw new Error('no content');
-  }catch(e){
-    removeTyping(tid);
-    const fallbacks=[
-      `Pro tvoji aktuální fázi (${CURRICULUM[ST.phase].name}) je klíčové: ${CURRICULUM[ST.phase].drills[0].cues[0]}. Pracuj na tom každý den 15–20 minut.`,
-      `PB ${ST.pb.toFixed(1)}s — výborný základ! Na prodloužení holdu zkus Hold Extension Protocol z Fáze 3.`,
-      `Konzistence je základ stojky. 15 minut denně > 90 minut jednou týdně. Nervový systém se adaptuje opakováním, ne vyčerpáním.`
-    ];
-    addChatMsg('ai',fallbacks[Math.floor(Math.random()*fallbacks.length)]);
+    addChatMsg('ai',`Pro fázi "${CURR[ST.phase].name}": ${CURR[ST.phase].drills[0].cues[0]}. PB ${ST.pb.toFixed(1)}s — konzistence je klíč.`);
   }
 }
 
-function quickQ(el){document.getElementById('chat-input').value=el.textContent;sendMsg();}
-function addChatMsg(role,txt){
+function quickQ(el) { document.getElementById('chat-inp').value=el.textContent; sendMsg(); }
+function addChatMsg(role,txt) {
   const msgs=document.getElementById('chat-msgs');
-  const d=document.createElement('div');d.className=`msg ${role}`;
+  const d=document.createElement('div'); d.className=`msg ${role}`;
   const t=new Date().toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit'});
-  d.innerHTML=`<div class="msg-bubble">${txt.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div><div class="msg-meta">${role==='ai'?'Max Coach · ':''}${t}</div>`;
-  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+  d.innerHTML=`<div class="msg-b">${txt.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div><div class="msg-meta">${role==='ai'?'Max · ':''}${t}</div>`;
+  msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
 }
-function addTyping(){
+function addTyping() {
   const msgs=document.getElementById('chat-msgs');
-  const id='t'+Date.now();const d=document.createElement('div');
-  d.className='msg ai';d.id=id;
-  d.innerHTML='<div class="typing-ind"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
-  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;return id;
+  const id='t'+Date.now(); const d=document.createElement('div');
+  d.className='msg ai'; d.id=id;
+  d.innerHTML='<div class="typing"><div class="td"></div><div class="td"></div><div class="td"></div></div>';
+  msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight; return id;
 }
-function removeTyping(id){const el=document.getElementById(id);if(el)el.remove();}
-function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
-
-// ============================================================
-// HOME
-// ============================================================
-function updateHome(){
-  document.getElementById('today-date-label').textContent=new Date().toLocaleDateString('cs-CZ',{weekday:'long',day:'numeric',month:'long'});
-  document.getElementById('hero-phase').textContent=CURRICULUM[ST.phase].name;
-  const total=CURRICULUM.reduce((s,p)=>s+p.drills.length,0);
-  const done=Object.values(ST.drillsDone).filter(Boolean).length;
-  const pct=Math.round(done/total*100);
-  document.getElementById('hero-pct').textContent=pct+'%';
-  document.getElementById('hero-fill').style.width=pct+'%';
-  document.getElementById('st-pb').textContent=ST.pb>0?ST.pb.toFixed(1)+'s':'0s';
-  document.getElementById('st-sess').textContent=ST.sessions;
-  // streak
-  let str=0;let d=new Date();
-  while(ST.streak.includes(d.toDateString())){str++;d.setDate(d.getDate()-1);}
-  document.getElementById('st-str').textContent=str;
-  // streak row
-  const srow=document.getElementById('streak-row');
-  const today=new Date().toDateString();
-  const days7=[];for(let i=6;i>=0;i--){const dd=new Date();dd.setDate(dd.getDate()-i);days7.push(dd.toDateString());}
-  srow.innerHTML=days7.map(d=>`<div class="streak-day${d===today?' today':ST.streak.includes(d)?' done':''}"></div>`).join('');
-  // today plan
-  document.getElementById('today-plan').innerHTML=TODAY_ITEMS.map((item,i)=>`
-    <div class="today-card${ST.todayDone[i]?' done':''}" onclick="toggleToday(${i})">
-      <div class="today-icon ${item.type}">${item.emoji}</div>
-      <div class="today-info"><div class="today-name">${item.name}</div><div class="today-detail">${item.detail}</div></div>
-      <div class="today-check">${ST.todayDone[i]?'✓':''}</div>
-    </div>`).join('');
-}
-
-function toggleToday(i){ST.todayDone[i]=!ST.todayDone[i];save();updateHome();}
+function removeTyping(id) { const el=document.getElementById(id); if(el) el.remove(); }
+function autoR(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; }
 
 // ============================================================
 // MODAL
 // ============================================================
-function showPB(secs){
+function showPB(s) {
   document.getElementById('modal-body').innerHTML=`
-    <div class="pb-celeb">
-      <div class="pb-trophy">🏆</div>
-      <div class="pb-title-modal">Nový rekord!</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Překonal/a jsi svůj osobní rekord!</div>
-      <div class="pb-time-big">${secs.toFixed(1)}</div>
-      <div class="pb-time-unit">SEKUND HOLDU</div>
-    </div>
-    <button class="btn-close-m" onclick="closeModal()">🔥 Pokračovat v tréninku</button>`;
+    <div class="pb-celeb"><div class="pb-trophy">🏆</div>
+    <div class="pb-title-m">Nový rekord!</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Překonal/a jsi svůj osobní rekord!</div>
+    <div class="pb-big">${s.toFixed(1)}</div><div class="pb-unit">SEKUND</div></div>
+    <button class="btn-close-m" onclick="closeModal()">🔥 Pokračovat</button>`;
   document.getElementById('modal-ov').classList.add('active');
 }
-function closeModal(){document.getElementById('modal-ov').classList.remove('active');}
-
-// ============================================================
-// NAVIGATION
-// ============================================================
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  const map={s_home:0,s_camera:1,s_progress:2,s_learn:3,s_coach:4};
-  const navItems=document.querySelectorAll('.nav-item');
-  const key=id.replace('-','_');
-  if(map[key]!==undefined)navItems[map[key]].classList.add('active');
-}
+function closeModal() { document.getElementById('modal-ov').classList.remove('active'); }
 
 // ============================================================
 // INIT
 // ============================================================
-function init(){
-  updateHome();renderCurriculum();
-  // Reset today done if new day
-  const today=new Date().toDateString();
-  if(ST.lastDay!==today){ST.todayDone={};ST.lastDay=today;save();}
+function init() {
+  renderCurr();
   // Initial coach message
-  setTimeout(()=>{
-    const isNew=ST.sessions===0;
-    const ph=CURRICULUM[ST.phase];
-    addChatMsg('ai',isNew
-      ?`Ahoj! Jsem Max, tvůj AI trenér stojky. 👋\n\nVidím, že začínáš. Skvělé rozhodnutí! Doporučuji začít **Fází 1** a věnovat 15–20 minut denně. Stojka se buduje konzistencí, ne intenzitou — to je nejdůležitější věc co ti můžu říct.\n\nSpusť kameru nebo manuální timer a zaznamená svůj první hold. Na co se chceš zeptat?`
-      :`Vítej zpět! 💪 Jsi na **${ph.name}** — ${ST.sessions} tréninků, PB ${ST.pb.toFixed(1)}s.\n\nJak se daří? Mám tip na tvoji fázi.`);
-  },600);
+  setTimeout(() => {
+    const isNew = ST.sessions === 0;
+    addChatMsg('ai', isNew
+      ? `Ahoj! Jsem Max, tvůj AI trenér stojky. 👋\n\nZačni na záložce **Diagnostika** — za 5 sekund ti ukáže tvá omezení a sestaví personalizovaný warm-up. Pak spusť **Trénink** a zaznamenávej holdy.\n\nNa co se chceš zeptat?`
+      : `Vítej zpět! 💪 Fáze: ${CURR[ST.phase].name}, PB: ${ST.pb.toFixed(1)}s.\n\nMáš novou diagnostiku? Skočím na záložku Diagnostika a aktualizuju ti warm-up.`);
+  }, 500);
+
+  // Auto-start camera
+  startCamera();
 }
 
 init();
