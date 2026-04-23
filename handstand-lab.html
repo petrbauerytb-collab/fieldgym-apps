@@ -579,9 +579,9 @@ function onPose(res){
 function analyzePosture(lm){
   const L=lm;
   if(!L[11]||!L[12]||!L[23]||!L[24]||!L[27]||!L[28]) return;
-  const midSh={(x:(L[11].x+L[12].x)/2,y:(L[11].y+L[12].y)/2)};
-  const midHip={(x:(L[23].x+L[24].x)/2,y:(L[23].y+L[24].y)/2)};
-  const midAnk={(x:(L[27].x+L[28].x)/2,y:(L[27].y+L[28].y)/2)};
+  const midSh={x:(L[11].x+L[12].x)/2,y:(L[11].y+L[12].y)/2};
+  const midHip={x:(L[23].x+L[24].x)/2,y:(L[23].y+L[24].y)/2};
+  const midAnk={x:(L[27].x+L[28].x)/2,y:(L[27].y+L[28].y)/2};
   const inverted=midAnk.y<L[0].y;
   const bodyDev=inverted
     ?Math.abs(Math.atan2(midHip.x-midAnk.x,midAnk.y-midHip.y)*(180/Math.PI))
