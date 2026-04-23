@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Stojka Lab">
+<title>Stojka Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080a0c;--surface:#0f1318;--card:#151a20;--border:#1e2530;--accent:#00e5ff;--accent2:#ff6b35;--green:#00e676;--yellow:#ffea00;--red:#ff1744;--purple:#d500f9;--text:#e8eaf0;--muted:#4a5568;--r:14px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow:hidden;user-select:none}
+
+/* NAV */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(8,10,12,0.97);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0;transition:opacity .2s}
+.nav-icon{font-size:20px;line-height:1}
+.nav-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);transition:color .2s}
+.nav-item.active .nav-label{color:var(--accent)}
+.nav-item.active .nav-icon{filter:drop-shadow(0 0 6px var(--accent))}
+
+/* SCREENS */
+.screen{display:none;height:100vh;overflow-y:auto;padding-bottom:80px}
+.screen.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* HEADER */
+.screen-header{padding:18px 16px 12px;position:sticky;top:0;z-index:50;background:rgba(8,10,12,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.screen-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;line-height:1}
+.screen-title span{color:var(--accent)}
+.screen-sub{font-size:11px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace;letter-spacing:.5px}
+
+/* =========== HOME =========== */
+.content{padding:16px}
+.hero-card{background:linear-gradient(135deg,#0a1628,#0d2040);border:1px solid rgba(0,229,255,.2);border-radius:20px;padding:20px;margin-bottom:16px;position:relative;overflow:hidden}
+.hero-card::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(0,229,255,.07),transparent 70%);pointer-events:none}
+.hero-greeting{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.hero-phase{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;line-height:1.1;margin-bottom:14px}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;font-family:'DM Mono',monospace}
+.progress-label span{color:var(--accent)}
+.progress-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:16px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),#00b8d4);border-radius:2px;transition:width .8s cubic-bezier(.16,1,.3,1)}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.hero-stat{text-align:center;background:rgba(0,0,0,.3);border-radius:10px;padding:10px 6px;border:1px solid var(--border)}
+.hero-stat-value{font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1;color:var(--accent)}
+.hero-stat-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace;margin-top:2px}
+.section-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.streak-row{display:flex;gap:6px;margin-bottom:16px}
+.streak-day{flex:1;height:6px;border-radius:3px;background:var(--border)}
+.streak-day.done{background:var(--accent)}
+.streak-day.today{background:var(--accent2);animation:pulse-bar 1.5s ease-in-out infinite}
+@keyframes pulse-bar{0%,100%{opacity:1}50%{opacity:.5}}
+.today-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:14px;cursor:pointer}
+.today-card.done{opacity:.5}
+.today-card.done .today-name{text-decoration:line-through}
+.today-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.today-icon.warmup{background:rgba(255,234,0,.1);border:1px solid rgba(255,234,0,.2)}
+.today-icon.main{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.2)}
+.today-icon.drill{background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.2)}
+.today-icon.strength{background:rgba(255,107,53,.1);border:1px solid rgba(255,107,53,.2)}
+.today-info{flex:1}
+.today-name{font-size:15px;font-weight:600;margin-bottom:2px}
+.today-detail{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace}
+.today-check{width:24px;height:24px;border:2px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all .2s}
+.today-card.done .today-check{background:var(--green);border-color:var(--green);color:#000}
+.btn-main{width:100%;background:var(--accent);color:#000;border:none;border-radius:14px;padding:16px;font-family:'DM Mono',monospace;font-size:15px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-top:4px;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s}
+.btn-main:active{opacity:.8}
+
+/* =========== CAMERA =========== */
+#s-camera{position:relative;padding-bottom:0}
+.camera-container{position:relative;width:100%;height:100vh;background:#000;overflow:hidden}
+#camera-video{position:absolute;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#pose-canvas{position:absolute;top:0;left:0;width:100%;height:100%;transform:scaleX(-1)}
+.cam-overlay{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:10}
+.cam-top{position:absolute;top:0;left:0;right:0;padding:50px 16px 16px;background:linear-gradient(to bottom,rgba(0,0,0,.85),transparent);pointer-events:none}
+.mode-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,229,255,.15);border:1px solid rgba(0,229,255,.3);border-radius:20px;padding:6px 14px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+.mode-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.align-display{display:flex;align-items:center;gap:12px}
+.align-score{font-family:'Bebas Neue',sans-serif;font-size:60px;line-height:1;color:var(--green);text-shadow:0 0 20px rgba(0,230,118,.5);transition:color .3s;min-width:80px}
+.align-score.mid{color:var(--yellow);text-shadow:0 0 20px rgba(255,234,0,.5)}
+.align-score.low{color:var(--red);text-shadow:0 0 20px rgba(255,23,68,.5)}
+.align-info{flex:1}
+.align-label{font-size:10px;color:rgba(255,255,255,.5);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:3px}
+.feedback-txt{font-size:14px;font-weight:600;color:var(--text);line-height:1.3}
+
+/* HOLD TIMER CENTER */
+.hold-timer{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;opacity:0;transition:opacity .4s}
+.hold-timer.active{opacity:1}
+.ring-wrap{width:150px;height:150px;position:relative;margin:0 auto 8px}
+.ring-wrap svg{position:absolute;top:0;left:0;transform:rotate(-90deg)}
+.ring-bg{stroke:rgba(255,255,255,.08)}
+.ring-fill{stroke:var(--accent);stroke-dasharray:440;stroke-dashoffset:440;transition:stroke-dashoffset 1s linear,stroke .3s;stroke-linecap:round}
+.hold-secs{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Bebas Neue',sans-serif;font-size:56px;color:#fff;letter-spacing:2px;line-height:1}
+.hold-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.pb-flash{display:inline-flex;align-items:center;gap:6px;background:rgba(255,234,0,.2);border:1px solid rgba(255,234,0,.4);border-radius:20px;padding:4px 12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--yellow);margin-top:6px;opacity:0;transition:opacity .3s}
+.pb-flash.show{opacity:1}
+
+/* ANGLE SIDE PANEL */
+.angle-panel{position:absolute;top:50%;right:12px;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.angle-box{background:rgba(0,0,0,.75);border:1px solid var(--border);border-radius:8px;padding:6px 10px;text-align:center;min-width:58px}
+.angle-val{font-family:'Bebas Neue',sans-serif;font-size:17px;color:var(--accent);line-height:1}
+.angle-lbl{font-size:8px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+
+/* BODY ALIGNMENT GUIDE */
+.vert-guide{position:absolute;top:0;left:50%;transform:translateX(-50%);width:2px;height:100%;background:linear-gradient(to bottom,transparent,rgba(0,229,255,.25),transparent);pointer-events:none}
+
+/* CAM BOTTOM */
+.cam-bottom{position:absolute;bottom:0;left:0;right:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(to top,rgba(0,0,0,.92),transparent);pointer-events:all}
+.cam-controls{display:flex;gap:10px;align-items:center;justify-content:center;margin-bottom:10px}
+.cam-btn{border:none;border-radius:50px;cursor:pointer;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:11px 18px;transition:all .2s;display:flex;align-items:center;gap:6px}
+.cam-btn-primary{background:var(--accent);color:#000;font-weight:700;padding:13px 26px;font-size:13px}
+.cam-btn-primary:active{transform:scale(.95)}
+.cam-btn-sec{background:rgba(255,255,255,.1);color:var(--text);border:1px solid var(--border)}
+.sess-bar{display:flex;gap:8px;justify-content:center}
+.sess-stat{text-align:center;background:rgba(0,0,0,.55);border:1px solid var(--border);border-radius:8px;padding:5px 10px}
+.sess-val{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--text);line-height:1}
+.sess-lbl{font-size:8px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+
+/* CAM PLACEHOLDER */
+#cam-placeholder{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);z-index:5;text-align:center;padding:40px 24px}
+.btn-allow{background:var(--accent);color:#000;border:none;border-radius:12px;padding:14px 28px;font-family:'DM Mono',monospace;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-top:20px}
+
+/* COUNTDOWN */
+.countdown-ov{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:20;pointer-events:none;opacity:0;transition:opacity .3s}
+.countdown-ov.active{opacity:1}
+.countdown-n{font-family:'Bebas Neue',sans-serif;font-size:130px;color:#fff;text-shadow:0 0 40px rgba(0,229,255,.8)}
+
+/* MANUAL TIMER MODE */
+.manual-timer-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.9);z-index:15}
+.manual-time-big{font-family:'Bebas Neue',sans-serif;font-size:100px;color:var(--accent);line-height:1;text-shadow:0 0 30px rgba(0,229,255,.5)}
+.manual-sub{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:24px}
+.btn-manual-hold{background:var(--green);color:#000;border:none;border-radius:50%;width:100px;height:100px;font-family:'Bebas Neue',sans-serif;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.2;box-shadow:0 0 30px rgba(0,230,118,.4)}
+.btn-manual-hold.holding{background:var(--red);box-shadow:0 0 30px rgba(255,23,68,.4)}
+
+/* =========== PROGRESS =========== */
+.pb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.pb-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:center}
+.pb-card.hl{border-color:rgba(255,234,0,.4);background:rgba(255,234,0,.04)}
+.pb-val{font-family:'Bebas Neue',sans-serif;font-size:38px;color:var(--accent);line-height:1;margin-bottom:2px}
+.pb-card.hl .pb-val{color:var(--yellow)}
+.pb-lbl{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.chart-title{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:1px;margin-bottom:12px}
+.bars{display:flex;align-items:flex-end;gap:4px;height:80px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(to top,rgba(0,229,255,.6),rgba(0,229,255,.2));min-height:3px}
+.bar.is-pb{background:linear-gradient(to top,var(--yellow),rgba(255,234,0,.3))}
+.bar-lbl{font-size:8px;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap}
+.log-entry{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.log-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.log-dot.pb{background:var(--yellow)}
+.log-txt{flex:1;font-size:13px}
+.log-sub{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace}
+.log-time{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)}
+
+/* =========== CURRICULUM =========== */
+.phase-block{margin-bottom:20px}
+.phase-hdr{display:flex;align-items:center;gap:12px;margin-bottom:10px;padding:0 16px}
+.phase-num{font-family:'Bebas Neue',sans-serif;font-size:44px;line-height:1;color:var(--border);min-width:44px;transition:color .3s}
+.phase-num.active{color:var(--accent)}
+.phase-num.done{color:var(--green)}
+.phase-name-txt{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;margin-bottom:1px}
+.phase-sub-txt{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace}
+.drill-card{background:var(--card);border:1px solid var(--border);border-radius:12px;margin:0 16px 8px;overflow:hidden;cursor:pointer;transition:border-color .2s}
+.drill-card.open{border-color:rgba(0,229,255,.3)}
+.drill-hdr{display:flex;align-items:center;gap:12px;padding:14px}
+.drill-emo{font-size:22px;flex-shrink:0}
+.drill-info{flex:1}
+.drill-name{font-size:14px;font-weight:600;margin-bottom:3px}
+.drill-tags{display:flex;gap:6px;flex-wrap:wrap}
+.drill-tag{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);background:var(--surface);border-radius:4px;padding:2px 6px;border:1px solid var(--border)}
+.drill-chk{width:26px;height:26px;border:2px solid var(--border);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all .2s}
+.drill-card.mastered .drill-chk{background:var(--green);border-color:var(--green);color:#000}
+.drill-detail{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.16,1,.3,1);border-top:0 solid var(--border)}
+.drill-card.open .drill-detail{max-height:500px;border-top-width:1px}
+.drill-detail-inner{padding:14px}
+.drill-desc{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:12px}
+.drill-cues{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.drill-cue{display:flex;align-items:flex-start;gap:8px;font-size:12px}
+.drill-cue::before{content:'→';color:var(--accent);flex-shrink:0;font-weight:700}
+.err-box{background:rgba(255,23,68,.05);border:1px solid rgba(255,23,68,.15);border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.err-title{font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:1px;font-family:'DM Mono',monospace;margin-bottom:5px}
+.err-item{font-size:12px;color:var(--muted);margin-bottom:2px;padding-left:12px;position:relative}
+.err-item::before{content:'✗';position:absolute;left:0;color:var(--red);font-size:10px}
+.target-box{background:rgba(0,229,255,.05);border:1px solid rgba(0,229,255,.15);border-radius:8px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--muted)}
+.btn-mastered{width:100%;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.25);border-radius:8px;padding:10px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);cursor:pointer;transition:all .2s}
+.btn-mastered:active{background:rgba(0,229,255,.18)}
+
+/* =========== AI COACH =========== */
+#s-coach{display:flex;flex-direction:column}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:85%;animation:msgIn .3s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{align-self:flex-end}
+.msg.ai{align-self:flex-start}
+.msg-bubble{padding:11px 14px;border-radius:14px;font-size:14px;line-height:1.6}
+.msg.user .msg-bubble{background:rgba(0,229,255,.12);border:1px solid rgba(0,229,255,.25);color:var(--text);border-bottom-right-radius:4px}
+.msg.ai .msg-bubble{background:var(--card);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:4px}
+.msg-meta{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:3px;padding:0 4px}
+.msg.user .msg-meta{text-align:right}
+.typing-ind{display:flex;gap:4px;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:4px;width:fit-content}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:typing 1.2s ease-in-out infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes typing{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
+.quick-qs{padding:8px 16px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;border-top:1px solid var(--border)}
+.quick-qs::-webkit-scrollbar{display:none}
+.quick-q{flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:6px 13px;font-size:12px;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .2s}
+.quick-q:active{border-color:var(--accent);color:var(--accent)}
+.chat-input-wrap{padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--border);display:flex;gap:10px;align-items:flex-end;background:var(--bg)}
+.chat-input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;resize:none;min-height:42px;max-height:100px;line-height:1.4;transition:border-color .2s}
+.chat-input:focus{border-color:var(--accent)}
+.chat-input::placeholder{color:var(--muted)}
+.chat-send{width:42px;height:42px;border-radius:12px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;transition:all .2s;color:#000;font-weight:700}
+.chat-send:active{transform:scale(.92)}
+.chat-send:disabled{opacity:.4}
+
+/* MODAL */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;align-items:flex-end;justify-content:center}
+.modal-ov.active{display:flex}
+.modal{background:var(--card);border-radius:24px 24px 0 0;border:1px solid var(--border);border-bottom:none;padding:20px 20px calc(20px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:90vh;overflow-y:auto;animation:slideUp .35s cubic-bezier(.16,1,.3,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+.pb-celeb{text-align:center;padding:10px 0 20px}
+.pb-trophy{font-size:72px;animation:tropBounce .6s ease}
+@keyframes tropBounce{0%{transform:scale(0) rotate(-20deg)}60%{transform:scale(1.2) rotate(5deg)}100%{transform:scale(1) rotate(0)}}
+.pb-title-modal{font-family:'Bebas Neue',sans-serif;font-size:34px;letter-spacing:2px;color:var(--yellow);margin:10px 0 4px}
+.pb-time-big{font-family:'Bebas Neue',sans-serif;font-size:72px;color:var(--yellow);line-height:1;text-shadow:0 0 30px rgba(255,234,0,.4)}
+.pb-time-unit{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.btn-close-m{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;font-family:'DM Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;margin-top:16px}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div class="screen active" id="s-home">
+  <div class="screen-header">
+    <div class="screen-title">STOJKA <span>LAB</span></div>
+    <div class="screen-sub" id="today-date-label">Načítám...</div>
+  </div>
+  <div class="content">
+    <div class="hero-card">
+      <div class="hero-greeting">Aktuální fáze</div>
+      <div class="hero-phase" id="hero-phase">Fáze 1 — U zdi</div>
+      <div class="progress-label"><span>Postup ke stojce</span><span id="hero-pct">0%</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="hero-fill" style="width:0%"></div></div>
+      <div class="hero-stats">
+        <div class="hero-stat"><div class="hero-stat-value" id="st-pb">0s</div><div class="hero-stat-label">🏆 Rekord</div></div>
+        <div class="hero-stat"><div class="hero-stat-value" id="st-sess">0</div><div class="hero-stat-label">Tréninků</div></div>
+        <div class="hero-stat"><div class="hero-stat-value" id="st-str">0</div><div class="hero-stat-label">Streak 🔥</div></div>
+      </div>
+    </div>
+    <div class="section-label">Aktivita — 7 dní</div>
+    <div class="streak-row" id="streak-row"></div>
+    <div class="section-label" style="margin-top:16px">Dnešní plán</div>
+    <div id="today-plan"></div>
+    <button class="btn-main" onclick="showScreen('s-camera');initCamera()">📸 Spustit analýzu stojky</button>
+  </div>
+</div>
+
+<!-- CAMERA -->
+<div class="screen" id="s-camera" style="padding-bottom:0">
+  <div class="camera-container">
+    <video id="camera-video" playsinline muted></video>
+    <canvas id="pose-canvas"></canvas>
+    <div class="vert-guide"></div>
+
+    <div id="cam-placeholder">
+      <div style="font-size:72px;margin-bottom:16px;opacity:.3">📷</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;margin-bottom:8px">Pose Detection</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.7;max-width:280px">Kamera analyzuje tvou stojku v reálném čase. Měří úhly těla a automaticky zaznamenává holdy.</div>
+      <button class="btn-allow" onclick="startCamera()">🎥 Spustit kameru</button>
+      <div style="font-size:12px;color:var(--muted);margin-top:12px">Nebo použij manuální timer →</div>
+      <button onclick="showManualTimer()" style="margin-top:8px;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:10px;padding:10px 20px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);cursor:pointer;letter-spacing:1px;text-transform:uppercase">⏱ Manuální timer</button>
+    </div>
+
+    <!-- Manual timer overlay -->
+    <div class="manual-timer-wrap" id="manual-timer" style="display:none">
+      <div class="manual-time-big" id="manual-time-display">0.0</div>
+      <div class="manual-sub" id="manual-timer-sub">Drž tlačítko během stojky</div>
+      <button class="btn-manual-hold" id="btn-manual"
+        ontouchstart="manualStart(event)" ontouchend="manualStop(event)"
+        onmousedown="manualStart(event)" onmouseup="manualStop(event)">
+        DRŽÍ<br>ME
+      </button>
+      <div style="margin-top:20px;display:flex;gap:12px">
+        <button onclick="hideManualTimer()" style="background:rgba(255,255,255,.1);border:1px solid var(--border);border-radius:10px;padding:10px 18px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);cursor:pointer">← Zpět</button>
+      </div>
+    </div>
+
+    <div class="cam-overlay">
+      <div class="cam-top">
+        <div class="mode-badge"><div class="mode-dot"></div><span id="cam-mode-label">Pose Detection</span></div>
+        <div class="align-display">
+          <div class="align-score" id="align-score">—</div>
+          <div class="align-info">
+            <div class="align-label">Skóre linie těla</div>
+            <div class="feedback-txt" id="feedback-txt">Stoupni před kameru</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hold-timer" id="hold-timer">
+        <div class="ring-wrap">
+          <svg width="150" height="150" viewBox="0 0 150 150">
+            <circle class="ring-bg" cx="75" cy="75" r="70" fill="none" stroke-width="6"/>
+            <circle class="ring-fill" id="ring-fill" cx="75" cy="75" r="70" fill="none" stroke-width="6"/>
+          </svg>
+          <div class="hold-secs" id="hold-secs">0</div>
+        </div>
+        <div class="hold-label">sekund holdu</div>
+        <div class="pb-flash" id="pb-flash">🏆 Nový rekord!</div>
+      </div>
+
+      <div class="angle-panel">
+        <div class="angle-box"><div class="angle-val" id="ang-body">—°</div><div class="angle-lbl">Tělo</div></div>
+        <div class="angle-box"><div class="angle-val" id="ang-sh">—°</div><div class="angle-lbl">Ramena</div></div>
+        <div class="angle-box"><div class="angle-val" id="ang-hip">—°</div><div class="angle-lbl">Boky</div></div>
+      </div>
+
+      <div class="countdown-ov" id="countdown-ov">
+        <div class="countdown-n" id="countdown-n">3</div>
+      </div>
+    </div>
+
+    <div class="cam-bottom">
+      <div class="cam-controls">
+        <button class="cam-btn cam-btn-sec" onclick="goHome()">← Zpět</button>
+        <button class="cam-btn cam-btn-primary" id="btn-detect" onclick="toggleDetect()">▶ Spustit</button>
+        <button class="cam-btn cam-btn-sec" onclick="flipCam()">🔄 Otočit</button>
+      </div>
+      <div class="sess-bar">
+        <div class="sess-stat"><div class="sess-val" id="s-att">0</div><div class="sess-lbl">Pokusy</div></div>
+        <div class="sess-stat"><div class="sess-val" id="s-best">0s</div><div class="sess-lbl">Nejlepší</div></div>
+        <div class="sess-stat"><div class="sess-val" id="s-total">0s</div><div class="sess-lbl">Celkem</div></div>
+        <div class="sess-stat"><div class="sess-val" id="s-avg">—</div><div class="sess-lbl">Průměr</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="screen" id="s-progress">
+  <div class="screen-header">
+    <div class="screen-title">PROGRES</div>
+    <div class="screen-sub">Statistiky a holdy</div>
+  </div>
+  <div class="content">
+    <div class="pb-grid">
+      <div class="pb-card hl"><div class="pb-val" id="pg-pb">0s</div><div class="pb-lbl">🏆 Osobní rekord</div></div>
+      <div class="pb-card"><div class="pb-val" id="pg-avg" style="color:var(--text)">0s</div><div class="pb-lbl">Průměr holdu</div></div>
+      <div class="pb-card"><div class="pb-val" id="pg-sess" style="font-size:30px;color:var(--green)">0</div><div class="pb-lbl">Tréninků</div></div>
+      <div class="pb-card"><div class="pb-val" id="pg-att" style="font-size:30px;color:var(--purple)">0</div><div class="pb-lbl">Pokusů</div></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Holdy — posledních 14 dní</div>
+      <div class="bars" id="bars-chart"><div style="width:100%;text-align:center;padding:20px 0;color:var(--muted);font-size:13px">Zatím žádné záznamy</div></div>
+    </div>
+    <div class="section-label">Historie</div>
+    <div id="history-log"><div style="text-align:center;padding:30px;color:var(--muted);font-size:13px">Žádné záznamy</div></div>
+  </div>
+</div>
+
+<!-- CURRICULUM -->
+<div class="screen" id="s-learn">
+  <div class="screen-header">
+    <div class="screen-title">CURRICULUM</div>
+    <div class="screen-sub">5 fází · 20 drillů · od nuly po volnou stojku</div>
+  </div>
+  <div id="curriculum-wrap" style="padding:16px 0 16px"></div>
+</div>
+
+<!-- AI COACH -->
+<div class="screen" id="s-coach">
+  <div class="screen-header">
+    <div class="screen-title">AI <span>COACH</span></div>
+    <div class="screen-sub">Powered by Claude · Osobní trenér 24/7</div>
+  </div>
+  <div class="chat-msgs" id="chat-msgs"></div>
+  <div class="quick-qs">
+    <div class="quick-q" onclick="quickQ(this)">Jak na kickup?</div>
+    <div class="quick-q" onclick="quickQ(this)">Proč padám dopředu?</div>
+    <div class="quick-q" onclick="quickQ(this)">Bolí zápěstí, co dělat?</div>
+    <div class="quick-q" onclick="quickQ(this)">Kdy jít do další fáze?</div>
+    <div class="quick-q" onclick="quickQ(this)">Jak trénovat každý den?</div>
+    <div class="quick-q" onclick="quickQ(this)">Co je banana back?</div>
+    <div class="quick-q" onclick="quickQ(this)">Jak zlepšit linii těla?</div>
+  </div>
+  <div class="chat-input-wrap">
+    <textarea class="chat-input" id="chat-input" placeholder="Napiš svůj dotaz..." rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg()}"
+      oninput="autoResize(this)"></textarea>
+    <button class="chat-send" onclick="sendMsg()">↑</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-item active" onclick="showScreen('s-home')"><div class="nav-icon">🏠</div><div class="nav-label">Domů</div></div>
+  <div class="nav-item" onclick="showScreen('s-camera');initCamera()"><div class="nav-icon">📸</div><div class="nav-label">Trénink</div></div>
+  <div class="nav-item" onclick="showScreen('s-progress');renderProgress()"><div class="nav-icon">📈</div><div class="nav-label">Progres</div></div>
+  <div class="nav-item" onclick="showScreen('s-learn')"><div class="nav-icon">📚</div><div class="nav-label">Drilly</div></div>
+  <div class="nav-item" onclick="showScreen('s-coach')"><div class="nav-icon">🤖</div><div class="nav-label">Trenér</div></div>
+</nav>
+
+<!-- MODAL -->
+<div class="modal-ov" id="modal-ov" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CURRICULUM DATA
+// ============================================================
+const CURRICULUM=[
+  {name:"Fáze 1 — U zdi",sub:"Základní síla, scapular control, první kickupy",drills:[
+    {id:"f1d1",emoji:"🧱",name:"Wall Plank Hold",tags:["3×30–60s","U zdi","Každý den"],
+     desc:"Předloktí na zemi, nohy opřené o zeď v téměř vertikální poloze. Celé tělo jako jeden blok — aktivní core, stažené hýždě, push skrz ramena.",
+     cues:["Tlač zeď aktivně — ramena od uší","Rib tuck — stáhni žebra dolů","Squeeze glutes — zmáčkni hýždě jako orech","Deprese lopatek — ramena dolů, ne k uším"],
+     errors:["Banana back — záda se prohýbají","Pasivní ramena — visíš na kloubech","Hlava v záklonu — neutrální krk"],target:"3×60s komfortně"},
+    {id:"f1d2",emoji:"🦶",name:"Kick-up Practice",tags:["15 pokusů","U zdi","Kontrola"],
+     desc:"Nácvik odrázu a hledání balančního bodu u zdi. Silná noha jako kyvadlo — cíl je najít vertikálu opakovaně, ne ji udržet.",
+     cues:["Ruce 20cm od zdi","Silná noha se odráží, slabá kope nahoru","Nepřeskakuj přes vertikálu","Aktivní ramena od prvního momentu"],
+     errors:["Skákáš přes — chybí kontrola","Ruce příliš blízko zdi","Asymetrie nohou — srovnej"],target:"10 kontrolovaných kickupů za sebou"},
+    {id:"f1d3",emoji:"🚶",name:"Wall Walk",tags:["5–8 opakování","Pomalé","3–4s každý krok"],
+     desc:"Z push-up pozice kráčíš nohama po zdi výše a výše. Trénuje přechod horizontála–vertikála a aktivaci ramenního pletence.",
+     cues:["Každý krok = push skrz ramena","Drž core napnutý celou dobu","Nenos váhu do zdi — drž ji v rukou"],
+     errors:["Spěcháš nahoru","Uvolňuješ core uprostřed","Prohýbáš záda"],target:"5× pomalý walk bez odpočinku"},
+    {id:"f1d4",emoji:"⚖️",name:"Chest-to-Wall Hold",tags:["5×10–30s","Hrudník ke zdi","Flat back"],
+     desc:"Stojka hrudníkem ke zdi — nejtěžší varianta pro linii těla. Nohy se dotýkají zdi minimálně. Trénuje skutečnou vertikálu.",
+     cues:["Dosáhni patami ke zdi, ne hýžděmi","Flat back — aktivuj core silně","Ramena v protrakci a depresi"],
+     errors:["Banana back — prohnutí místo přímé linie","Příliš blízko zdi"],target:"5×20s s flat back"}
+  ]},
+  {name:"Fáze 2 — Balans",sub:"Finger pressure, první volné sekundy, tvar těla",drills:[
+    {id:"f2d1",emoji:"🖐️",name:"Finger Pressure Control",tags:["U zdi","5×30s","Vědomá praxe"],
+     desc:"V chest-to-wall stojce přenášíš váhu z dlaně na prsty a zpět. Tlakem prstů koriduješ nad/pod vertikálu — základ všeho balansu.",
+     cues:["Padáš dopředu = zmáčkni prsty","Padáš dozadu = tlač dlaní","Wrist flexion jako brzda","Prsty vždy aktivní"],
+     errors:["Box hands — prsty nejsou aktivní","Reaguješ celým tělem místo zápěstím"],target:"Vědomé ovládání v obou směrech"},
+    {id:"f2d2",emoji:"🎯",name:"Kickup to Balance",tags:["20 pokusů","Cíl: 1–3s volně","Každý den"],
+     desc:"Kickup s cílem najít balanční bod a vydržet 1–3 sekundy volně. Počet pokusů je důležitější než délka každého.",
+     cues:["Hledej vertikálu, nekopej přes ni","Micro pohyby zápěstí a prstů","Dýchej — uvolněné svaly balancují lépe"],
+     errors:["Kickuješ příliš silně","Tuhneš celým tělem","Málo pokusů"],target:"5 holdů >3s v jednom setu"},
+    {id:"f2d3",emoji:"🌀",name:"Straddle Balance",tags:["10s hold","10 pokusů","Wider base"],
+     desc:"Stojka s rozkročenými nohami. Nižší těžiště = jednodušší balans. Skvělý přechod mezi wall work a volnou stojkou.",
+     cues:["Čím širší nohy, tím stabilnější","Stejná aktivita ramen jako ve straight","Plynulý přechod straddle→straight"],
+     errors:["Nohy ne dost wide","Pouštíš ramena při přechodu"],target:"3×10s straddle volně"},
+    {id:"f2d4",emoji:"🔄",name:"Shape Shifting",tags:["Tuck→Pike→Straight","10 opakování","U zdi"],
+     desc:"V stojce u zdi přecházíš mezi tvary těla: tuck, pike, straight. Trénuje kontrolu těžiště a napětí trupu při pohybu.",
+     cues:["Každý přechod = nové těžiště","Core kompenzuje okamžitě","Tuck je záchrana"],
+     errors:["Ztráta kontroly při přechodu","Nesměřuješ přes straight"],target:"Plynulý přechod tuck–straight–tuck"}
+  ]},
+  {name:"Fáze 3 — Free Stojka",sub:"Volná stojka, prodloužení holdu, konzistence",drills:[
+    {id:"f3d1",emoji:"🚀",name:"Free Handstand Attempts",tags:["20–30 pokusů","Timer aktivní","Log každý hold"],
+     desc:"Primární praxe volné stojky. Kickup → balans → hold. Každý pokus se loguje. Konzistence je klíč — 15+ pokusů za trénink.",
+     cues:["Kvalita kickupu = kvalita holdu","Najdi svůj rytmus","Po pádu hned znovu"],
+     errors:["Málo pokusů","Tréninky příliš daleko od sebe"],target:"10s hold konzistentně"},
+    {id:"f3d2",emoji:"⏱️",name:"Hold Extension Protocol",tags:["5×max hold","3min odpočinek","Každé 3 dny"],
+     desc:"Cílený protokol na prodlužování holdu. 5 max pokusů s plným odpočinkem. Ne denně — nervový systém potřebuje regeneraci.",
+     cues:["Každý pokus = plné nasazení","Zaznamenej čas — data jsou tvůj trenér"],
+     errors:["Příliš krátký odpočinek","Pokračuješ unavený"],target:"PB každé 2 týdny"},
+    {id:"f3d3",emoji:"🎪",name:"Tuck to Straight",tags:["10 opakování","U zdi nebo volně","Kontrolovaně"],
+     desc:"Z tuck holdu pomalu extenduj nohy do straight a zpět. Jeden z nejlepších drillů pro kontrolu těžiště a trénink napětí trupu.",
+     cues:["Pomalá extenze — 3s nahoru","Core kompenzuje vše","Ramena zůstávají fixed"],
+     errors:["Setrvačnost — není kontrola","Ztráta vertikály ramen"],target:"5× tuck–straight bez pádu"}
+  ]},
+  {name:"Fáze 4 — Kontrola",sub:"Tuck press, walks, one arm příprava",drills:[
+    {id:"f4d1",emoji:"💎",name:"Tuck Press Handstand",tags:["5×3 opakování","Pomalé tempo","Síla not setrvačnost"],
+     desc:"Z tuck pozice pomalu extenduj nohy do straight stojky. Extrémně silový cvik pro kontrolu těžiště při pohybu nohou.",
+     cues:["2s extenze, 2s flexe","Core kompenzuje celou dobu","Ramena fixed — jen kyčle a kolena"],
+     errors:["Rychlý pohyb — setrvačnost","Ztráta vertikály ramen"],target:"3×5 tuck press bez pádu"},
+    {id:"f4d2",emoji:"🚶",name:"Handstand Walking",tags:["10 kroků cíl","Každý trénink","Rovný povrch"],
+     desc:"Chůze na rukou — každý krok je miniaturní balancování. Trénuje dynamický balans a přesun váhy v pohybu.",
+     cues:["Malé kroky — 5–10cm","Každý krok = nová stojka","Pohled mírně dopředu"],
+     errors:["Příliš velké kroky","Povolíš core při přenosu"],target:"10 kroků plynule"},
+    {id:"f4d3",emoji:"🦅",name:"One Arm Weight Shift",tags:["5× každá strana","Postupný přesun","U zdi nebo volně"],
+     desc:"Přesun 60–80% váhy na jednu ruku. Příprava na OAH. Volná ruka se lehce dotýká zdi nebo jen plave vedle těla.",
+     cues:["Pomalý přesun — ne skok","Kompenzuj celým tělem","Hold min. 2s každá strana"],
+     errors:["Příliš rychlý přesun","Nerovnováha v ramenním pletenci"],target:"5s 80% váhy na jedné ruce"}
+  ]},
+  {name:"Fáze 5 — Pokročilé",sub:"Press HS, one arm, dynamické prvky",drills:[
+    {id:"f5d1",emoji:"⚡",name:"Straddle Press Handstand",tags:["5 pokusů","Ze stoje silou","Hip flexor síla"],
+     desc:"Press handstand ze straddle — vstup do stojky silou bez kickupu. Jeden z nejnáročnějších pohybů. Vyžaduje extrémní hip flexor sílu.",
+     cues:["Lean forward agresivně","Straddle co nejširší","Slow and controlled"],
+     errors:["Nedostatečný lean forward","Nohy příliš blízko sebe"],target:"1 čistý press handstand"},
+    {id:"f5d2",emoji:"✋",name:"One Arm Handstand",tags:["10–15 pokusů","Volná ruka k tělu","S asistencí"],
+     desc:"Pokusy o OAH — vrchol statické akrobacie. Volná ruka k tělu nebo za záda. Vyžaduje roky přípravy. Každá sekunda se počítá.",
+     cues:["Pomalý přesun váhy","Celé tělo rotuje mírně k volné ruce","Finger pressure crucial"],
+     errors:["Příliš rychlý přesun","Rotace mimo kontrolu"],target:"2s one arm volně"},
+    {id:"f5d3",emoji:"🌊",name:"Handstand Push-ups",tags:["5×3 opakování","U zdi","Shoulder strength"],
+     desc:"HSPU u zdi — jedno z nejsilnějších cvičení pro ramenní pletence. Klíčový cvik pro overhead sílu a stabilitu v stojce.",
+     cues:["Kontrolovaný sestup — 3s","Plný lockout nahoře","Ramena zůstávají aktivní po celou dobu"],
+     errors:["Nedojdeš dolů — nekompletní ROM","Asymetrický tlak"],target:"5×5 HSPU u zdi"}
+  ]}
+];
+
+const TODAY_ITEMS=[
+  {type:'warmup',emoji:'🔥',name:'Warm-up — Zápěstí & Ramena',detail:'5 min · wrist CARs, shoulder circles, scapular push-ups'},
+  {type:'main',emoji:'🤸',name:'Hlavní praxe stojky',detail:'15–20 min · kickupy, holdy, pose detection'},
+  {type:'drill',emoji:'💪',name:'Drilly aktuální fáze',detail:'10 min · dle curriculum, 3 hlavní drilly'},
+  {type:'strength',emoji:'⚡',name:'Conditioning',detail:'5 min · pike push-ups, core, wrist strength'}
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let ST=JSON.parse(localStorage.getItem('stojka-lab')||'null')||{
+  phase:0,drillsDone:{},sessions:0,attempts:0,pb:0,
+  holds:[],streak:[],log:[],todayDone:{}
+};
+function save(){localStorage.setItem('stojka-lab',JSON.stringify(ST))}
+
+// ============================================================
+// CAMERA & DETECTION
+// ============================================================
+let stream=null,camFacing='user',detecting=false;
+let holdActive=false,holdStart=null,holdSecs=0,holdInt=null;
+let sessHolds=[],sessBest=0,sessTotal=0;
+let poseReady=false,poseModel=null;
+
+async function initCamera(){
+  // Just show the screen; camera starts when user clicks
+}
+
+async function startCamera(){
+  const ph=document.getElementById('cam-placeholder');
+  try{
+    if(stream) stream.getTracks().forEach(t=>t.stop());
+    stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:camFacing==='user'?'user':'environment',width:{ideal:640},height:{ideal:480}}
+    });
+    const vid=document.getElementById('camera-video');
+    vid.srcObject=stream;
+    await vid.play();
+    ph.style.display='none';
+    const cv=document.getElementById('pose-canvas');
+    vid.addEventListener('loadedmetadata',()=>{cv.width=vid.videoWidth;cv.height=vid.videoHeight});
+    loadPose();
+  }catch(e){
+    ph.innerHTML=`<div style="font-size:48px;margin-bottom:16px;opacity:.3">🚫</div><div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin-bottom:8px">Kamera nedostupná</div><div style="font-size:13px;color:var(--muted);line-height:1.6;max-width:260px">Zkontroluj oprávnění v nastavení prohlížeče, nebo použij manuální timer.</div><button onclick="showManualTimer()" style="margin-top:16px;background:var(--accent);color:#000;border:none;border-radius:10px;padding:12px 24px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;cursor:pointer">⏱ Manuální timer</button>`;
+  }
+}
+
+async function loadPose(){
+  try{
+    if(typeof Pose==='undefined') throw new Error('no mediapipe');
+    poseModel=new Pose({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}`});
+    poseModel.setOptions({modelComplexity:1,smoothLandmarks:true,minDetectionConfidence:.5,minTrackingConfidence:.5});
+    poseModel.onResults(onPose);
+    await poseModel.initialize();
+    poseReady=true;
+    document.getElementById('cam-mode-label').textContent='Pose Detection ✓';
+  }catch(e){
+    document.getElementById('cam-mode-label').textContent='Manuální režim';
+  }
+}
+
+function onPose(res){
+  const cv=document.getElementById('pose-canvas');
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,cv.width,cv.height);
+  if(!res.poseLandmarks||!detecting) return;
+  try{
+    drawConnectors(ctx,res.poseLandmarks,POSE_CONNECTIONS,{color:'rgba(0,229,255,.45)',lineWidth:2});
+    drawLandmarks(ctx,res.poseLandmarks,{color:'rgba(0,229,255,.75)',lineWidth:1,radius:3.5});
+  }catch(e){}
+  analyzePosture(res.poseLandmarks,cv.width,cv.height);
+}
+
+function analyzePosture(lm){
+  const L=lm;
+  if(!L[11]||!L[12]||!L[23]||!L[24]||!L[27]||!L[28]) return;
+  const midSh={(x:(L[11].x+L[12].x)/2,y:(L[11].y+L[12].y)/2)};
+  const midHip={(x:(L[23].x+L[24].x)/2,y:(L[23].y+L[24].y)/2)};
+  const midAnk={(x:(L[27].x+L[28].x)/2,y:(L[27].y+L[28].y)/2)};
+  const inverted=midAnk.y<L[0].y;
+  const bodyDev=inverted
+    ?Math.abs(Math.atan2(midHip.x-midAnk.x,midAnk.y-midHip.y)*(180/Math.PI))
+    :Math.abs(Math.atan2(midHip.x-midSh.x,midSh.y-midHip.y)*(180/Math.PI));
+  const shTilt=Math.round(Math.abs(Math.atan2(L[11].y-L[12].y,L[12].x-L[11].x)*(180/Math.PI)));
+  const hipTilt=Math.round(Math.abs(Math.atan2(L[23].y-L[24].y,L[24].x-L[23].x)*(180/Math.PI)));
+  document.getElementById('ang-body').textContent=Math.round(bodyDev)+'°';
+  document.getElementById('ang-sh').textContent=shTilt+'°';
+  document.getElementById('ang-hip').textContent=hipTilt+'°';
+  let score=0,fb='';
+  if(!inverted){
+    score=0;fb='Jdi do stojky! 🤸';
+    stopHold();
+  }else{
+    const dev=bodyDev;
+    if(dev<4){score=96+Math.round(Math.random()*4);fb='🎯 Perfektní vertikála!';}
+    else if(dev<10){score=82-Math.round(dev*1.5);fb='✨ Výborná linie!';}
+    else if(dev<20){score=65-Math.round(dev);fb='⚡ Koriguj — aktivuj core';}
+    else if(dev<35){score=45-Math.round(dev*.5);fb='⚠️ Banana back — squeeze glutes';}
+    else{score=20;fb='❌ Ztráta kontroly';}
+    if(score>50){if(!holdActive)startHold();}
+    else{if(holdActive)stopHold();}
+  }
+  setScore(score,fb);
+}
+
+function setScore(s,fb){
+  const el=document.getElementById('align-score');
+  el.textContent=s>0?s:'—';
+  el.className='align-score'+(s>=75?'':s>=50?' mid':' low');
+  document.getElementById('feedback-txt').textContent=fb;
+}
+
+function startHold(){
+  if(holdActive)return;
+  holdActive=true;holdStart=Date.now();holdSecs=0;
+  document.getElementById('hold-timer').classList.add('active');
+  holdInt=setInterval(()=>{
+    holdSecs=(Date.now()-holdStart)/1000;
+    updateRing(holdSecs);
+    if(holdSecs>ST.pb&&ST.pb>0) document.getElementById('pb-flash').classList.add('show');
+  },100);
+}
+
+function stopHold(){
+  if(!holdActive)return;
+  holdActive=false;clearInterval(holdInt);
+  document.getElementById('hold-timer').classList.remove('active');
+  document.getElementById('pb-flash').classList.remove('show');
+  if(holdSecs>.5){
+    const d=Math.round(holdSecs*10)/10;
+    sessHolds.push(d);sessBest=Math.max(sessBest,d);sessTotal+=d;
+    ST.holds.push({duration:d,date:new Date().toISOString()});
+    ST.attempts++;
+    const isPB=d>ST.pb;
+    if(isPB){ST.pb=d;showPB(d);}
+    addLog(`Hold ${d.toFixed(1)}s${isPB?' 🏆 PB!':''}`,isPB?'pb':'');
+    save();updateSessUI();
+  }
+  document.getElementById('hold-secs').textContent='0';
+  document.getElementById('ring-fill').style.strokeDashoffset=440;
+}
+
+function updateRing(secs){
+  document.getElementById('hold-secs').textContent=Math.floor(secs);
+  const maxS=30,prog=Math.min(secs/maxS,1),circ=440;
+  const rf=document.getElementById('ring-fill');
+  rf.style.strokeDashoffset=circ*(1-prog);
+  rf.style.stroke=secs>=10?'var(--yellow)':secs>=5?'var(--green)':'var(--accent)';
+}
+
+function toggleDetect(){
+  detecting=!detecting;
+  const btn=document.getElementById('btn-detect');
+  if(detecting){
+    btn.textContent='⏹ Stop';btn.style.background='var(--red)';
+    if(poseReady)runPoseLoop();
+    countdown(3,()=>{});
+  }else{
+    btn.textContent='▶ Spustit';btn.style.background='var(--accent)';
+    stopHold();
+    const cv=document.getElementById('pose-canvas');
+    cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+    setScore(0,'Stoupni před kameru');
+    ['ang-body','ang-sh','ang-hip'].forEach(id=>document.getElementById(id).textContent='—°');
+    if(sessHolds.length>0){ST.sessions++;const td=new Date().toDateString();if(!ST.streak.includes(td))ST.streak.push(td);save();updateHome();}
+  }
+}
+
+async function runPoseLoop(){
+  const vid=document.getElementById('camera-video');
+  const cv=document.getElementById('pose-canvas');
+  async function loop(){
+    if(!detecting)return;
+    if(vid.readyState>=2){cv.width=vid.videoWidth;cv.height=vid.videoHeight;try{await poseModel.send({image:vid});}catch(e){}}
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+function flipCam(){camFacing=camFacing==='user'?'environment':'user';if(stream)startCamera();}
+function goHome(){if(sessHolds.length>0&&detecting)toggleDetect();showScreen('s-home');}
+
+function countdown(from,cb){
+  const ov=document.getElementById('countdown-ov'),n=document.getElementById('countdown-n');
+  let c=from;ov.classList.add('active');n.textContent=c;
+  const iv=setInterval(()=>{c--;if(c<=0){clearInterval(iv);ov.classList.remove('active');cb&&cb();}else{n.textContent=c;}},1000);
+}
+
+function updateSessUI(){
+  document.getElementById('s-att').textContent=sessHolds.length;
+  document.getElementById('s-best').textContent=sessBest.toFixed(1)+'s';
+  document.getElementById('s-total').textContent=sessTotal.toFixed(0)+'s';
+  document.getElementById('s-avg').textContent=sessHolds.length>0?(sessTotal/sessHolds.length).toFixed(1)+'s':'—';
+}
+
+// MANUAL TIMER
+let manualActive=false,manualStart_t=null,manualInt=null;
+function showManualTimer(){
+  document.getElementById('cam-placeholder').style.display='none';
+  document.getElementById('manual-timer').style.display='flex';
+}
+function hideManualTimer(){
+  document.getElementById('manual-timer').style.display='none';
+  document.getElementById('cam-placeholder').style.display='flex';
+}
+function manualStart(e){
+  e.preventDefault();if(manualActive)return;
+  manualActive=true;manualStart_t=Date.now();
+  const btn=document.getElementById('btn-manual');
+  btn.textContent='PUSŤTE';btn.classList.add('holding');
+  document.getElementById('manual-timer-sub').textContent='Drž stojku!';
+  manualInt=setInterval(()=>{
+    const secs=(Date.now()-manualStart_t)/1000;
+    document.getElementById('manual-time-display').textContent=secs.toFixed(1);
+  },100);
+}
+function manualStop(e){
+  e.preventDefault();if(!manualActive)return;
+  clearInterval(manualInt);manualActive=false;
+  const secs=(Date.now()-manualStart_t)/1000;
+  const btn=document.getElementById('btn-manual');
+  btn.classList.remove('holding');btn.textContent='DRŽÍ\nME';
+  document.getElementById('manual-timer-sub').textContent='Drž tlačítko během stojky';
+  if(secs>.3){
+    const d=Math.round(secs*10)/10;
+    sessHolds.push(d);sessBest=Math.max(sessBest,d);sessTotal+=d;
+    ST.holds.push({duration:d,date:new Date().toISOString()});
+    ST.attempts++;
+    const isPB=d>ST.pb;
+    if(isPB){ST.pb=d;showPB(d);}
+    addLog(`Hold ${d.toFixed(1)}s${isPB?' 🏆 PB!':''}`,isPB?'pb':'');
+    save();updateSessUI();
+    document.getElementById('manual-time-display').textContent=d.toFixed(1);
+    document.getElementById('manual-timer-sub').textContent=`Zaznamenáno${isPB?' — nový rekord! 🏆':''}`;
+    if(!ST.streak.includes(new Date().toDateString()))ST.streak.push(new Date().toDateString());
+    ST.sessions++;save();
+  }
+}
+
+// ============================================================
+// PROGRESS
+// ============================================================
+function renderProgress(){
+  const holds=ST.holds;
+  const pb=ST.pb;
+  const avg=holds.length>0?(holds.reduce((s,h)=>s+h.duration,0)/holds.length).toFixed(1):0;
+  document.getElementById('pg-pb').textContent=pb.toFixed(1)+'s';
+  document.getElementById('pg-avg').textContent=avg+'s';
+  document.getElementById('pg-sess').textContent=ST.sessions;
+  document.getElementById('pg-att').textContent=ST.attempts;
+  renderChart();renderLog();
+}
+
+function renderChart(){
+  const chart=document.getElementById('bars-chart');
+  if(!ST.holds.length){chart.innerHTML='<div style="width:100%;text-align:center;padding:20px 0;color:var(--muted);font-size:13px">Zatím žádné záznamy</div>';return;}
+  const days=[];
+  for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push({lbl:d.toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric'}),date:d.toDateString(),holds:[]});}
+  ST.holds.forEach(h=>{const d=new Date(h.date).toDateString();const day=days.find(x=>x.date===d);if(day)day.holds.push(h.duration);});
+  const maxV=Math.max(...days.map(d=>d.holds.length>0?Math.max(...d.holds):0),1);
+  chart.innerHTML=days.map(day=>{
+    const best=day.holds.length>0?Math.max(...day.holds):0;
+    const h=Math.max((best/maxV)*100,best>0?4:0);
+    const isPB=best===ST.pb&&best>0;
+    return`<div class="bar-col"><div class="bar${isPB?' is-pb':''}" style="height:${h}%" title="${best.toFixed(1)}s"></div><div class="bar-lbl">${day.lbl.split('.')[0]}</div></div>`;
+  }).join('');
+}
+
+function renderLog(){
+  const log=document.getElementById('history-log');
+  const entries=[...ST.log].reverse().slice(0,25);
+  if(!entries.length){log.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:13px">Žádné záznamy</div>';return;}
+  log.innerHTML=entries.map(e=>`<div class="log-entry"><div class="log-dot${e.type==='pb'?' pb':''}"></div><div class="log-txt">${e.txt}<div class="log-sub">${e.time}</div></div></div>`).join('');
+}
+
+function addLog(txt,type=''){
+  ST.log.push({txt,type,time:new Date().toLocaleString('cs-CZ',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})});
+  if(ST.log.length>60)ST.log=ST.log.slice(-60);
+}
+
+// ============================================================
+// CURRICULUM
+// ============================================================
+function renderCurriculum(){
+  const wrap=document.getElementById('curriculum-wrap');
+  wrap.innerHTML=CURRICULUM.map((phase,pi)=>{
+    const isAct=pi===ST.phase,isDone=pi<ST.phase;
+    const drills=phase.drills.map(d=>{
+      const mastered=ST.drillsDone[d.id];
+      return`<div class="drill-card${mastered?' mastered':''}" id="dc-${d.id}" onclick="toggleDC('${d.id}')">
+        <div class="drill-hdr">
+          <div class="drill-emo">${d.emoji}</div>
+          <div class="drill-info">
+            <div class="drill-name">${d.name}</div>
+            <div class="drill-tags">${d.tags.map(t=>`<span class="drill-tag">${t}</span>`).join('')}</div>
+          </div>
+          <div class="drill-chk">${mastered?'✓':''}</div>
+        </div>
+        <div class="drill-detail">
+          <div class="drill-detail-inner">
+            <div class="drill-desc">${d.desc}</div>
+            <div class="drill-cues">${d.cues.map(c=>`<div class="drill-cue">${c}</div>`).join('')}</div>
+            <div class="err-box"><div class="err-title">Nejčastější chyby</div>${d.errors.map(e=>`<div class="err-item">${e}</div>`).join('')}</div>
+            <div class="target-box">🎯 <strong style="color:var(--accent)">Cíl:</strong> ${d.target}</div>
+            <button class="btn-mastered" onclick="event.stopPropagation();toggleMastered('${d.id}')">${mastered?'✓ Zvládnuto — odznačit':'+ Označit jako zvládnuté'}</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    return`<div class="phase-block">
+      <div class="phase-hdr">
+        <div class="phase-num${isAct?' active':isDone?' done':''}">${String(pi+1).padStart(2,'0')}</div>
+        <div><div class="phase-name-txt">${phase.name}</div><div class="phase-sub-txt">${phase.sub}</div></div>
+      </div>${drills}
+    </div>`;
+  }).join('');
+}
+
+function toggleDC(id){
+  const el=document.getElementById('dc-'+id);
+  const open=el.classList.contains('open');
+  document.querySelectorAll('.drill-card.open').forEach(c=>c.classList.remove('open'));
+  if(!open)el.classList.add('open');
+}
+
+function toggleMastered(id){
+  ST.drillsDone[id]=!ST.drillsDone[id];
+  save();renderCurriculum();updateHome();
+}
+
+// ============================================================
+// AI COACH
+// ============================================================
+let chatHist=[];
+
+function getSysPrompt(){
+  const ph=CURRICULUM[ST.phase];
+  return`Jsi AI trenér stojky jménem Max. Mluvíš česky, přátelsky ale věcně. Buď konkrétní, max 3–4 věty pokud není potřeba víc.
+
+Kontext uživatele:
+- Aktuální fáze: ${ph.name}
+- Osobní rekord: ${ST.pb.toFixed(1)}s
+- Tréninků: ${ST.sessions}
+- Pokusů celkem: ${ST.attempts}
+- Poslední holdy: ${ST.holds.slice(-5).map(h=>h.duration.toFixed(1)+'s').join(', ')||'zatím žádné'}
+
+Pravidla: buď konkrétní, odkazuj na data uživatele, používej technické cues (finger pressure, rib tuck, scapular depression atd), buď motivující ale realistický.`;
+}
+
+async function sendMsg(){
+  const inp=document.getElementById('chat-input');
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value='';inp.style.height='auto';
+  addChatMsg('user',msg);chatHist.push({role:'user',content:msg});
+  const tid=addTyping();
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:getSysPrompt(),messages:chatHist})
+    });
+    const data=await r.json();
+    removeTyping(tid);
+    if(data.content&&data.content[0]){
+      const txt=data.content[0].text;
+      addChatMsg('ai',txt);chatHist.push({role:'assistant',content:txt});
+    }else throw new Error('no content');
+  }catch(e){
+    removeTyping(tid);
+    const fallbacks=[
+      `Pro tvoji aktuální fázi (${CURRICULUM[ST.phase].name}) je klíčové: ${CURRICULUM[ST.phase].drills[0].cues[0]}. Pracuj na tom každý den 15–20 minut.`,
+      `PB ${ST.pb.toFixed(1)}s — výborný základ! Na prodloužení holdu zkus Hold Extension Protocol z Fáze 3.`,
+      `Konzistence je základ stojky. 15 minut denně > 90 minut jednou týdně. Nervový systém se adaptuje opakováním, ne vyčerpáním.`
+    ];
+    addChatMsg('ai',fallbacks[Math.floor(Math.random()*fallbacks.length)]);
+  }
+}
+
+function quickQ(el){document.getElementById('chat-input').value=el.textContent;sendMsg();}
+function addChatMsg(role,txt){
+  const msgs=document.getElementById('chat-msgs');
+  const d=document.createElement('div');d.className=`msg ${role}`;
+  const t=new Date().toLocaleTimeString('cs-CZ',{hour:'2-digit',minute:'2-digit'});
+  d.innerHTML=`<div class="msg-bubble">${txt.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div><div class="msg-meta">${role==='ai'?'Max Coach · ':''}${t}</div>`;
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+}
+function addTyping(){
+  const msgs=document.getElementById('chat-msgs');
+  const id='t'+Date.now();const d=document.createElement('div');
+  d.className='msg ai';d.id=id;
+  d.innerHTML='<div class="typing-ind"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;return id;
+}
+function removeTyping(id){const el=document.getElementById(id);if(el)el.remove();}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+
+// ============================================================
+// HOME
+// ============================================================
+function updateHome(){
+  document.getElementById('today-date-label').textContent=new Date().toLocaleDateString('cs-CZ',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('hero-phase').textContent=CURRICULUM[ST.phase].name;
+  const total=CURRICULUM.reduce((s,p)=>s+p.drills.length,0);
+  const done=Object.values(ST.drillsDone).filter(Boolean).length;
+  const pct=Math.round(done/total*100);
+  document.getElementById('hero-pct').textContent=pct+'%';
+  document.getElementById('hero-fill').style.width=pct+'%';
+  document.getElementById('st-pb').textContent=ST.pb>0?ST.pb.toFixed(1)+'s':'0s';
+  document.getElementById('st-sess').textContent=ST.sessions;
+  // streak
+  let str=0;let d=new Date();
+  while(ST.streak.includes(d.toDateString())){str++;d.setDate(d.getDate()-1);}
+  document.getElementById('st-str').textContent=str;
+  // streak row
+  const srow=document.getElementById('streak-row');
+  const today=new Date().toDateString();
+  const days7=[];for(let i=6;i>=0;i--){const dd=new Date();dd.setDate(dd.getDate()-i);days7.push(dd.toDateString());}
+  srow.innerHTML=days7.map(d=>`<div class="streak-day${d===today?' today':ST.streak.includes(d)?' done':''}"></div>`).join('');
+  // today plan
+  document.getElementById('today-plan').innerHTML=TODAY_ITEMS.map((item,i)=>`
+    <div class="today-card${ST.todayDone[i]?' done':''}" onclick="toggleToday(${i})">
+      <div class="today-icon ${item.type}">${item.emoji}</div>
+      <div class="today-info"><div class="today-name">${item.name}</div><div class="today-detail">${item.detail}</div></div>
+      <div class="today-check">${ST.todayDone[i]?'✓':''}</div>
+    </div>`).join('');
+}
+
+function toggleToday(i){ST.todayDone[i]=!ST.todayDone[i];save();updateHome();}
+
+// ============================================================
+// MODAL
+// ============================================================
+function showPB(secs){
+  document.getElementById('modal-body').innerHTML=`
+    <div class="pb-celeb">
+      <div class="pb-trophy">🏆</div>
+      <div class="pb-title-modal">Nový rekord!</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:20px">Překonal/a jsi svůj osobní rekord!</div>
+      <div class="pb-time-big">${secs.toFixed(1)}</div>
+      <div class="pb-time-unit">SEKUND HOLDU</div>
+    </div>
+    <button class="btn-close-m" onclick="closeModal()">🔥 Pokračovat v tréninku</button>`;
+  document.getElementById('modal-ov').classList.add('active');
+}
+function closeModal(){document.getElementById('modal-ov').classList.remove('active');}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const map={s_home:0,s_camera:1,s_progress:2,s_learn:3,s_coach:4};
+  const navItems=document.querySelectorAll('.nav-item');
+  const key=id.replace('-','_');
+  if(map[key]!==undefined)navItems[map[key]].classList.add('active');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init(){
+  updateHome();renderCurriculum();
+  // Reset today done if new day
+  const today=new Date().toDateString();
+  if(ST.lastDay!==today){ST.todayDone={};ST.lastDay=today;save();}
+  // Initial coach message
+  setTimeout(()=>{
+    const isNew=ST.sessions===0;
+    const ph=CURRICULUM[ST.phase];
+    addChatMsg('ai',isNew
+      ?`Ahoj! Jsem Max, tvůj AI trenér stojky. 👋\n\nVidím, že začínáš. Skvělé rozhodnutí! Doporučuji začít **Fází 1** a věnovat 15–20 minut denně. Stojka se buduje konzistencí, ne intenzitou — to je nejdůležitější věc co ti můžu říct.\n\nSpusť kameru nebo manuální timer a zaznamená svůj první hold. Na co se chceš zeptat?`
+      :`Vítej zpět! 💪 Jsi na **${ph.name}** — ${ST.sessions} tréninků, PB ${ST.pb.toFixed(1)}s.\n\nJak se daří? Mám tip na tvoji fázi.`);
+  },600);
+}
+
+init();
+</script>
+</body>
+</html>
