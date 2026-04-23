@@ -532,6 +532,7 @@ function showScr(id) {
 // CAMERA & MOVENET POSE DETECTION
 // ============================================================
 let vidEl, cvEl, ctx, stream, camFacing = 'user';
+let hsEntryFrames = 0, hsExitFrames = 0; // hysteresis counters for handstand detection
 let detector = null, modelLoading = false, modelReady = false;
 let detecting = false, rafId = null;
 let holdActive = false, holdStart = null, holdSecs = 0, holdInt = null;
@@ -720,67 +721,89 @@ function analyzeHandstand(kps, W, H) {
   const lHip = kps[11], rHip = kps[12];
   const lAnk = conf(15) ? kps[15] : null;
   const rAnk = conf(16) ? kps[16] : null;
-  const lWr = conf(9) ? kps[9] : null;
-  const rWr = conf(10) ? kps[10] : null;
+  const lWr  = conf(9)  ? kps[9]  : null;
+  const rWr  = conf(10) ? kps[10] : null;
 
-  const midSh = { x: (lSh.x + rSh.x) / 2, y: (lSh.y + rSh.y) / 2 };
+  const midSh  = { x: (lSh.x + rSh.x) / 2, y: (lSh.y + rSh.y) / 2 };
   const midHip = { x: (lHip.x + rHip.x) / 2, y: (lHip.y + rHip.y) / 2 };
+  const midAnk = (lAnk && rAnk) ? { x: (lAnk.x + rAnk.x)/2, y: (lAnk.y + rAnk.y)/2 } : null;
+  const midWr  = (lWr && rWr)   ? { x: (lWr.x + rWr.x)/2,   y: (lWr.y + rWr.y)/2   } : null;
 
-  // Check if inverted — in handstand, hips should be above shoulders
-  // (y is inverted in screen coords — smaller y = higher)
-  const isHandstand = midHip.y < midSh.y - 50;
+  // ── KLÍČOVÁ DETEKCE ──────────────────────────────────────────
+  // V screen souřadnicích: menší y = výše na obrazovce
+  // Stojka: kyčle NAD rameny => midHip.y < midSh.y (minus práh)
+  // Dotyk země: kotníky klesnou na úroveň nebo pod ramena
 
+  const HIP_ABOVE_SH_THRESH = 40;   // px — kyčle musí být alespoň X px nad rameny
+  const ANKLE_GROUND_THRESH  = 20;   // px — kotníky se přiblíží k ramenům => konec stojky
+  const CONFIRM_FRAMES = 5;          // počet po sobě jdoucích snímků pro potvrzení
+
+  const hipsAboveShoulders = midHip.y < (midSh.y - HIP_ABOVE_SH_THRESH);
+
+  // Detekce dotyku země: kotníky sestoupily blízko k ramenům nebo pod ně
+  let ankleGrounded = false;
+  if (midAnk) {
+    // V normálním stoji jsou kotníky dole (větší y) než ramena
+    // Pokud ve stojce kotníky začnou klesat → y roste → přibližují se ramenům
+    ankleGrounded = midAnk.y > (midSh.y - ANKLE_GROUND_THRESH);
+  }
+
+  // ── HYSTEREZE: potvrzení přes N snímků ───────────────────────
+  // Zabraňuje falešným startům/stopům při chvění detekce
+  if (hipsAboveShoulders) {
+    hsEntryFrames = (hsEntryFrames || 0) + 1;
+    hsExitFrames = 0;
+  } else {
+    hsExitFrames = (hsExitFrames || 0) + 1;
+    hsEntryFrames = 0;
+  }
+
+  const confirmedHandstand = hsEntryFrames >= CONFIRM_FRAMES;
+  const confirmedExit      = hsExitFrames  >= CONFIRM_FRAMES || ankleGrounded;
+
+  // ── TIMER LOGIKA ──────────────────────────────────────────────
+  if (confirmedHandstand && !holdActive) {
+    startHold();
+  } else if (confirmedExit && holdActive) {
+    stopHold();
+  }
+
+  // ── SKÓRE A FEEDBACK ─────────────────────────────────────────
   let score = 0, fb = '', scoreClass = 'idle';
 
-  if (isHandstand) {
-    // === HANDSTAND ANALYSIS ===
-    const midAnk = lAnk && rAnk ? { x: (lAnk.x + rAnk.x) / 2, y: (lAnk.y + rAnk.y) / 2 } : null;
-    const midWr = lWr && rWr ? { x: (lWr.x + rWr.x) / 2, y: (lWr.y + rWr.y) / 2 } : null;
-
-    // Body line deviation from vertical
-    // In handstand: wrists at bottom, ankles at top
+  if (confirmedHandstand || holdActive) {
     let lineDeviation = 0;
     if (midWr && midAnk) {
-      // angle of wrist→ankle from vertical
       const dx = midAnk.x - midWr.x;
-      const dy = midWr.y - midAnk.y; // inverted y
+      const dy = midWr.y - midAnk.y;
       lineDeviation = Math.abs(Math.atan2(dx, dy) * (180 / Math.PI));
     } else {
-      // fallback: shoulder to hip
       const dx = midHip.x - midSh.x;
       const dy = midSh.y - midHip.y;
       lineDeviation = Math.abs(Math.atan2(dx, dy) * (180 / Math.PI));
     }
 
-    // Shoulder alignment (should be level)
-    const shTilt = Math.abs(Math.atan2(rSh.y - lSh.y, rSh.x - lSh.x) * (180 / Math.PI));
-    // Hip alignment
+    const shTilt  = Math.abs(Math.atan2(rSh.y - lSh.y,   rSh.x - lSh.x)   * (180 / Math.PI));
     const hipTilt = Math.abs(Math.atan2(rHip.y - lHip.y, rHip.x - lHip.x) * (180 / Math.PI));
-
-    // Update angle panel
     updateAngles(Math.round(lineDeviation), Math.round(shTilt), Math.round(hipTilt));
 
-    // Score
-    if (lineDeviation < 5) { score = 94 + Math.round(Math.random() * 5); fb = '🎯 Perfektní vertikála!'; scoreClass = 'good'; }
-    else if (lineDeviation < 12) { score = 80; fb = '✨ Výborná linie!'; scoreClass = 'good'; }
-    else if (lineDeviation < 22) { score = 62; fb = '⚡ Aktivuj core — stáhni žebra'; scoreClass = 'ok'; }
-    else if (lineDeviation < 35) { score = 42; fb = '⚠️ Banana back — squeeze glutes'; scoreClass = 'bad'; }
-    else { score = 20; fb = '❌ Ztráta kontroly — koriguj'; scoreClass = 'bad'; }
+    if      (lineDeviation < 5)  { score = 94 + Math.round(Math.random()*5); fb = '🎯 Perfektní vertikála!';       scoreClass = 'good'; }
+    else if (lineDeviation < 12) { score = 80;                                fb = '✨ Výborná linie!';             scoreClass = 'good'; }
+    else if (lineDeviation < 22) { score = 62;                                fb = '⚡ Aktivuj core — stáhni žebra'; scoreClass = 'ok';   }
+    else if (lineDeviation < 35) { score = 42;                                fb = '⚠️ Banana back — squeeze glutes'; scoreClass = 'bad'; }
+    else                         { score = 20;                                fb = '❌ Ztráta kontroly — koriguj';   scoreClass = 'bad'; }
 
-    if (score > 50) { if (!holdActive) startHold(); }
-    else { if (holdActive) stopHold(); }
+  } else if (hipsAboveShoulders && !confirmedHandstand) {
+    // Přechází do stojky — čekáme na potvrzení
+    score = 0; fb = `⏳ Vstup do stojky... (${hsEntryFrames}/${CONFIRM_FRAMES})`; scoreClass = 'ok';
+    updateAngles(0, 0, 0);
 
   } else {
-    // === STANDING ANALYSIS ===
-    // Check overhead mobility, shoulder position, hip alignment for diagnostics
-    const shTilt = Math.abs(Math.atan2(rSh.y - lSh.y, rSh.x - lSh.x) * (180 / Math.PI));
+    // Stojí normálně
+    const shTilt  = Math.abs(Math.atan2(rSh.y - lSh.y,   rSh.x - lSh.x)   * (180 / Math.PI));
     const hipTilt = Math.abs(Math.atan2(rHip.y - lHip.y, rHip.x - lHip.x) * (180 / Math.PI));
     updateAngles(0, Math.round(shTilt), Math.round(hipTilt));
-
-    if (holdActive) stopHold();
-    fb = 'Jdi do stojky! 🤸';
-    setScoreUI(0, fb, 'idle');
-    return;
+    score = 0; fb = 'Jdi do stojky! 🤸'; scoreClass = 'idle';
   }
 
   setScoreUI(score, fb, scoreClass);
@@ -860,6 +883,7 @@ function toggleDetect() {
     ctx.clearRect(0, 0, cvEl.width, cvEl.height);
     setScoreUI(0, 'Stoupni před kameru', 'idle');
     ['av-sh','av-hip','av-an'].forEach(id => document.getElementById(id).textContent = '—');
+    hsEntryFrames = 0; hsExitFrames = 0;
     if (sessHolds.length > 0) {
       ST.sessions++;
       const td = new Date().toDateString();
