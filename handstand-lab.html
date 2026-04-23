@@ -516,19 +516,49 @@ let ST=JSON.parse(localStorage.getItem('stojka-lab')||'null')||{
 function save(){localStorage.setItem('stojka-lab',JSON.stringify(ST))}
 
 // ============================================================
-// CAMERA & DETECTION
+// CAMERA & DETECTION — no external libs, works everywhere
 // ============================================================
 let stream=null,camFacing='user',detecting=false;
 let holdActive=false,holdStart=null,holdSecs=0,holdInt=null;
 let sessHolds=[],sessBest=0,sessTotal=0;
-let poseReady=false,poseModel=null;
+let detectRAF=null;
+let prevPixels=null; // for motion detection
+let motionHistory=[]; // rolling motion scores
+let stillFrames=0,movingFrames=0;
+let deviceGamma=0,deviceBeta=0; // gyroscope angles
+
+// Device orientation (gyro) for tilt detection
+function initGyro(){
+  if(typeof DeviceOrientationEvent==='undefined') return;
+  // iOS 13+ requires permission
+  if(typeof DeviceOrientationEvent.requestPermission==='function'){
+    // Will be called on user gesture
+  } else {
+    window.addEventListener('deviceorientation', e=>{
+      deviceBeta = e.beta||0;   // front-back tilt (-180 to 180)
+      deviceGamma = e.gamma||0; // left-right tilt (-90 to 90)
+    });
+  }
+}
+
+async function requestGyro(){
+  if(typeof DeviceOrientationEvent!=='undefined' &&
+     typeof DeviceOrientationEvent.requestPermission==='function'){
+    try{
+      const perm = await DeviceOrientationEvent.requestPermission();
+      if(perm==='granted'){
+        window.addEventListener('deviceorientation', e=>{
+          deviceBeta=e.beta||0;
+          deviceGamma=e.gamma||0;
+        });
+      }
+    }catch(e){}
+  }
+}
 
 async function initCamera(){
-  // Auto-start camera when navigating to camera screen
   const ph=document.getElementById('cam-placeholder');
-  if(ph&&ph.style.display!=='none'){
-    startCamera();
-  }
+  if(ph&&ph.style.display!=='none') startCamera();
 }
 
 async function startCamera(){
@@ -543,69 +573,171 @@ async function startCamera(){
     await vid.play();
     ph.style.display='none';
     const cv=document.getElementById('pose-canvas');
-    vid.addEventListener('loadedmetadata',()=>{cv.width=vid.videoWidth;cv.height=vid.videoHeight});
-    loadPose();
+    vid.addEventListener('loadedmetadata',()=>{
+      cv.width=vid.videoWidth||640;
+      cv.height=vid.videoHeight||480;
+    });
+    initGyro();
+    requestGyro();
+    document.getElementById('cam-mode-label').textContent='Analýza pohybu ✓';
   }catch(e){
-    ph.innerHTML=`<div style="font-size:48px;margin-bottom:16px;opacity:.3">🚫</div><div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin-bottom:8px">Kamera nedostupná</div><div style="font-size:13px;color:var(--muted);line-height:1.6;max-width:260px">Zkontroluj oprávnění v nastavení prohlížeče, nebo použij manuální timer.</div><button onclick="showManualTimer()" style="margin-top:16px;background:var(--accent);color:#000;border:none;border-radius:10px;padding:12px 24px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;cursor:pointer">⏱ Manuální timer</button>`;
+    ph.innerHTML=`
+      <div style="font-size:48px;margin-bottom:16px;opacity:.3">🚫</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin-bottom:8px">Kamera nedostupná</div>
+      <div style="font-size:13px;color:var(--muted);line-height:1.6;max-width:260px">Zkontroluj oprávnění v nastavení prohlížeče, nebo použij manuální timer.</div>
+      <button onclick="showManualTimer()" style="margin-top:16px;background:var(--accent);color:#000;border:none;border-radius:10px;padding:12px 24px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;cursor:pointer">⏱ Manuální timer</button>`;
   }
 }
 
-async function loadPose(){
-  try{
-    if(typeof Pose==='undefined') throw new Error('no mediapipe');
-    poseModel=new Pose({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}`});
-    poseModel.setOptions({modelComplexity:1,smoothLandmarks:true,minDetectionConfidence:.5,minTrackingConfidence:.5});
-    poseModel.onResults(onPose);
-    await poseModel.initialize();
-    poseReady=true;
-    document.getElementById('cam-mode-label').textContent='Pose Detection ✓';
-  }catch(e){
-    document.getElementById('cam-mode-label').textContent='Manuální režim';
-  }
-}
-
-function onPose(res){
+// ---- MOTION DETECTION via pixel diff ----
+function analyzeFrame(){
+  const vid=document.getElementById('camera-video');
   const cv=document.getElementById('pose-canvas');
+  if(!vid||vid.readyState<2||!detecting){detectRAF=requestAnimationFrame(analyzeFrame);return;}
+
+  const W=cv.width||320, H=cv.height||240;
+  // Use small offscreen canvas for speed
+  const off=document.createElement('canvas');
+  off.width=80;off.height=60;
+  const octx=off.getContext('2d');
+  octx.drawImage(vid,0,0,80,60);
+  const curr=octx.getImageData(0,0,80,60).data;
+
+  // Draw video to main canvas (mirrored)
   const ctx=cv.getContext('2d');
-  ctx.clearRect(0,0,cv.width,cv.height);
-  if(!res.poseLandmarks||!detecting) return;
-  try{
-    drawConnectors(ctx,res.poseLandmarks,POSE_CONNECTIONS,{color:'rgba(0,229,255,.45)',lineWidth:2});
-    drawLandmarks(ctx,res.poseLandmarks,{color:'rgba(0,229,255,.75)',lineWidth:1,radius:3.5});
-  }catch(e){}
-  analyzePosture(res.poseLandmarks,cv.width,cv.height);
+  ctx.clearRect(0,0,W,H);
+  ctx.save();
+  ctx.scale(-1,1);
+  ctx.drawImage(vid,-W,0,W,H);
+  ctx.restore();
+
+  let motionScore=0;
+  if(prevPixels){
+    let diff=0,count=0;
+    for(let i=0;i<curr.length;i+=4){
+      const dr=Math.abs(curr[i]-prevPixels[i]);
+      const dg=Math.abs(curr[i+1]-prevPixels[i+1]);
+      const db=Math.abs(curr[i+2]-prevPixels[i+2]);
+      diff+=(dr+dg+db)/3;
+      count++;
+    }
+    motionScore=diff/count; // 0-255, >8 = moving, <4 = still
+  }
+  prevPixels=new Uint8ClampedArray(curr);
+
+  // Rolling average (last 15 frames ≈ 0.5s)
+  motionHistory.push(motionScore);
+  if(motionHistory.length>15) motionHistory.shift();
+  const avgMotion=motionHistory.reduce((a,b)=>a+b,0)/motionHistory.length;
+
+  // Determine if STILL (holding handstand) vs MOVING (between attempts)
+  const isStill=avgMotion<6;
+
+  // Use device orientation if available to detect if phone is portrait/landscape
+  // Phone on ground watching someone = beta ~0 (flat), gamma ~0
+  // We just use motion + time-based detection
+  analyzeStability(isStill, avgMotion, motionScore);
+
+  // Draw motion indicator on canvas
+  drawMotionOverlay(ctx, W, H, avgMotion, isStill);
+
+  detectRAF=requestAnimationFrame(analyzeFrame);
 }
 
-function analyzePosture(lm){
-  const L=lm;
-  if(!L[11]||!L[12]||!L[23]||!L[24]||!L[27]||!L[28]) return;
-  const midSh={x:(L[11].x+L[12].x)/2,y:(L[11].y+L[12].y)/2};
-  const midHip={x:(L[23].x+L[24].x)/2,y:(L[23].y+L[24].y)/2};
-  const midAnk={x:(L[27].x+L[28].x)/2,y:(L[27].y+L[28].y)/2};
-  const inverted=midAnk.y<L[0].y;
-  const bodyDev=inverted
-    ?Math.abs(Math.atan2(midHip.x-midAnk.x,midAnk.y-midHip.y)*(180/Math.PI))
-    :Math.abs(Math.atan2(midHip.x-midSh.x,midSh.y-midHip.y)*(180/Math.PI));
-  const shTilt=Math.round(Math.abs(Math.atan2(L[11].y-L[12].y,L[12].x-L[11].x)*(180/Math.PI)));
-  const hipTilt=Math.round(Math.abs(Math.atan2(L[23].y-L[24].y,L[24].x-L[23].x)*(180/Math.PI)));
-  document.getElementById('ang-body').textContent=Math.round(bodyDev)+'°';
-  document.getElementById('ang-sh').textContent=shTilt+'°';
-  document.getElementById('ang-hip').textContent=hipTilt+'°';
-  let score=0,fb='';
-  if(!inverted){
-    score=0;fb='Jdi do stojky! 🤸';
-    stopHold();
-  }else{
-    const dev=bodyDev;
-    if(dev<4){score=96+Math.round(Math.random()*4);fb='🎯 Perfektní vertikála!';}
-    else if(dev<10){score=82-Math.round(dev*1.5);fb='✨ Výborná linie!';}
-    else if(dev<20){score=65-Math.round(dev);fb='⚡ Koriguj — aktivuj core';}
-    else if(dev<35){score=45-Math.round(dev*.5);fb='⚠️ Banana back — squeeze glutes';}
-    else{score=20;fb='❌ Ztráta kontroly';}
-    if(score>50){if(!holdActive)startHold();}
-    else{if(holdActive)stopHold();}
+let stableStart=null, stableConfirmed=false;
+let unstableStart=null;
+const STABLE_CONFIRM_MS=800; // must be still for 0.8s before hold counts
+const UNSTABLE_CONFIRM_MS=600; // must be moving for 0.6s before hold stops
+
+function analyzeStability(isStill, avgMotion, rawMotion){
+  const now=Date.now();
+
+  if(isStill){
+    unstableStart=null;
+    if(!stableStart) stableStart=now;
+    const stableFor=(now-stableStart)/1000;
+
+    if(stableFor>=STABLE_CONFIRM_MS/1000 && !holdActive){
+      startHold();
+      stableConfirmed=true;
+    }
+
+    // Score based on how still (lower motion = better score)
+    const score=Math.round(Math.max(60, Math.min(99, 99-(avgMotion*8))));
+    let fb='';
+    if(score>=90) fb='🎯 Perfektní hold — drž!';
+    else if(score>=75) fb='✨ Výborně — drž pozici!';
+    else fb='⚡ Téměř stabil — koriguj';
+
+    setScore(score, fb);
+    updateAnglesFromGyro();
+
+  } else {
+    stableStart=null;
+    stableConfirmed=false;
+
+    if(!unstableStart) unstableStart=now;
+    const movingFor=(now-unstableStart)/1000;
+
+    if(movingFor>=UNSTABLE_CONFIRM_MS/1000 && holdActive){
+      stopHold();
+    }
+
+    if(avgMotion>20){
+      setScore(0,'🤸 Pohyb detekován — připravuješ se?');
+    } else {
+      setScore(0,'⏳ Stoupni do stojky a znehybni');
+    }
   }
-  setScore(score,fb);
+}
+
+function updateAnglesFromGyro(){
+  // Show gyro angles if available, else show motion score
+  const beta=Math.round(deviceBeta);
+  const gamma=Math.round(deviceGamma);
+  if(beta!==0||gamma!==0){
+    document.getElementById('ang-body').textContent=beta+'°';
+    document.getElementById('ang-sh').textContent=gamma+'°';
+    document.getElementById('ang-hip').textContent=Math.round(Math.sqrt(beta*beta+gamma*gamma))+'°';
+  } else {
+    document.getElementById('ang-body').textContent='📱';
+    document.getElementById('ang-sh').textContent='gyro';
+    document.getElementById('ang-hip').textContent='N/A';
+  }
+}
+
+function drawMotionOverlay(ctx, W, H, avgMotion, isStill){
+  // Motion bar at bottom
+  const barW=Math.min(avgMotion/20, 1)*W;
+  const color=isStill?'rgba(0,230,118,0.5)':'rgba(255,107,53,0.5)';
+  ctx.fillStyle=color;
+  ctx.fillRect(0, H-4, barW, 4);
+
+  // Status indicator top-left
+  ctx.fillStyle=isStill?'rgba(0,230,118,0.8)':'rgba(255,107,53,0.8)';
+  ctx.beginPath();
+  ctx.arc(20,20,8,0,Math.PI*2);
+  ctx.fill();
+
+  // Grid lines (rule of thirds for positioning)
+  ctx.strokeStyle='rgba(0,229,255,0.08)';
+  ctx.lineWidth=1;
+  ctx.setLineDash([4,8]);
+  ctx.beginPath();
+  ctx.moveTo(W/3,0);ctx.lineTo(W/3,H);
+  ctx.moveTo(W*2/3,0);ctx.lineTo(W*2/3,H);
+  ctx.moveTo(0,H/3);ctx.lineTo(W,H/3);
+  ctx.moveTo(0,H*2/3);ctx.lineTo(W,H*2/3);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Center crosshair
+  ctx.strokeStyle='rgba(0,229,255,0.3)';
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(W/2-20,H/2);ctx.lineTo(W/2+20,H/2);
+  ctx.moveTo(W/2,H/2-20);ctx.lineTo(W/2,H/2+20);
+  ctx.stroke();
 }
 
 function setScore(s,fb){
@@ -643,6 +775,7 @@ function stopHold(){
   }
   document.getElementById('hold-secs').textContent='0';
   document.getElementById('ring-fill').style.strokeDashoffset=440;
+  stableStart=null;stableConfirmed=false;unstableStart=null;
 }
 
 function updateRing(secs){
@@ -658,28 +791,24 @@ function toggleDetect(){
   const btn=document.getElementById('btn-detect');
   if(detecting){
     btn.textContent='⏹ Stop';btn.style.background='var(--red)';
-    if(poseReady)runPoseLoop();
-    countdown(3,()=>{});
+    prevPixels=null;motionHistory=[];stableStart=null;unstableStart=null;
+    countdown(3,()=>{ detectRAF=requestAnimationFrame(analyzeFrame); });
   }else{
     btn.textContent='▶ Spustit';btn.style.background='var(--accent)';
+    if(detectRAF) cancelAnimationFrame(detectRAF);
     stopHold();
     const cv=document.getElementById('pose-canvas');
-    cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+    const ctx=cv.getContext('2d');
+    ctx.clearRect(0,0,cv.width,cv.height);
     setScore(0,'Stoupni před kameru');
     ['ang-body','ang-sh','ang-hip'].forEach(id=>document.getElementById(id).textContent='—°');
-    if(sessHolds.length>0){ST.sessions++;const td=new Date().toDateString();if(!ST.streak.includes(td))ST.streak.push(td);save();updateHome();}
+    if(sessHolds.length>0){
+      ST.sessions++;
+      const td=new Date().toDateString();
+      if(!ST.streak.includes(td))ST.streak.push(td);
+      save();updateHome();
+    }
   }
-}
-
-async function runPoseLoop(){
-  const vid=document.getElementById('camera-video');
-  const cv=document.getElementById('pose-canvas');
-  async function loop(){
-    if(!detecting)return;
-    if(vid.readyState>=2){cv.width=vid.videoWidth;cv.height=vid.videoHeight;try{await poseModel.send({image:vid});}catch(e){}}
-    requestAnimationFrame(loop);
-  }
-  loop();
 }
 
 function flipCam(){camFacing=camFacing==='user'?'environment':'user';if(stream)startCamera();}
