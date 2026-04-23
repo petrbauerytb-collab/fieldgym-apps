@@ -257,7 +257,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="streak-row" id="streak-row"></div>
     <div class="section-label" style="margin-top:16px">Dnešní plán</div>
     <div id="today-plan"></div>
-    <button class="btn-main" onclick="showScreen('s-camera');initCamera()">📸 Spustit analýzu stojky</button>
+    <button class="btn-main" onclick="showScreen('s-camera');startCamera()">📸 Spustit analýzu stojky</button>
   </div>
 </div>
 
@@ -400,7 +400,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <div class="nav-item active" onclick="showScreen('s-home')"><div class="nav-icon">🏠</div><div class="nav-label">Domů</div></div>
-  <div class="nav-item" onclick="showScreen('s-camera');initCamera()"><div class="nav-icon">📸</div><div class="nav-label">Trénink</div></div>
+  <div class="nav-item" onclick="showScreen('s-camera');startCamera()"><div class="nav-icon">📸</div><div class="nav-label">Trénink</div></div>
   <div class="nav-item" onclick="showScreen('s-progress');renderProgress()"><div class="nav-icon">📈</div><div class="nav-label">Progres</div></div>
   <div class="nav-item" onclick="showScreen('s-learn')"><div class="nav-icon">📚</div><div class="nav-label">Drilly</div></div>
   <div class="nav-item" onclick="showScreen('s-coach')"><div class="nav-icon">🤖</div><div class="nav-label">Trenér</div></div>
@@ -524,7 +524,11 @@ let sessHolds=[],sessBest=0,sessTotal=0;
 let poseReady=false,poseModel=null;
 
 async function initCamera(){
-  // Just show the screen; camera starts when user clicks
+  // Auto-start camera when navigating to camera screen
+  const ph=document.getElementById('cam-placeholder');
+  if(ph&&ph.style.display!=='none'){
+    startCamera();
+  }
 }
 
 async function startCamera(){
